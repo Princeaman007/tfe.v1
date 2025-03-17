@@ -1,0 +1,8 @@
+# Ignorer les fichiers .env pour backend et frontend
+backend/.env
+frontend/.env
+node_modules/
+.env
+.vscode/
+dist/
+build/
