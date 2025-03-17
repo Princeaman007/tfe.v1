@@ -11,21 +11,59 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-blue-500 text-white p-4 flex justify-between">
-      <h1 className="text-xl font-bold">📚 Bibliothèque</h1>
-      <div>
-        <Link to="/" className="mr-4">Accueil</Link>
-        {token ? (
-          <>
-            <Link to="/dashboard" className="mr-4">Tableau de Bord</Link>
-            <button onClick={handleLogout} className="bg-red-500 px-3 py-1 rounded">Déconnexion</button>
-          </>
-        ) : (
-          <>
-            <Link to="/login" className="mr-4">Connexion</Link>
-            <Link to="/register">Inscription</Link>
-          </>
-        )}
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div className="container">
+        {/* Logo / Nom */}
+        <Link to="/" className="navbar-brand fw-bold">
+          📚 Bibliothèque
+        </Link>
+
+        {/* Bouton pour Mobile */}
+        <button 
+          className="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav" 
+          aria-expanded="false" 
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
+
+        {/* Liens de Navigation */}
+        <div className="collapse navbar-collapse" id="navbarNav">
+          <ul className="navbar-nav ms-auto">
+            <li className="nav-item">
+              <Link to="/" className="nav-link">Accueil</Link>
+            </li>
+
+            {token ? (
+              <>
+                <li className="nav-item">
+                  <Link to="/dashboard" className="nav-link">Tableau de Bord</Link>
+                </li>
+                <li className="nav-item">
+                  <button 
+                    onClick={handleLogout} 
+                    className="btn btn-danger btn-sm ms-3"
+                  >
+                    Déconnexion
+                  </button>
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <Link to="/login" className="nav-link">Connexion</Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/register" className="nav-link">Inscription</Link>
+                </li>
+              </>
+            )}
+          </ul>
+        </div>
       </div>
     </nav>
   );

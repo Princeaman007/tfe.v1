@@ -2,19 +2,11 @@ import React from "react";
 
 const Dashboard = () => {
   return (
-    <div style={styles.container}>
-      <h2>Welcome to your Dashboard</h2>
-      <p>This is your secure area.</p>
+    <div className="container text-center mt-5">
+      <h2 className="text-primary">Welcome to your Dashboard</h2>
+      <p className="text-muted">This is your secure area.</p>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    textAlign: "center",
-    marginTop: "50px",
-    fontFamily: "Arial, sans-serif",
-  },
 };
 
 export default Dashboard;

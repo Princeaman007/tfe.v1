@@ -11,16 +11,22 @@ import { protect, isAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Routes accessibles à tous
+// ✅ Récupérer le stock total de livres (accessible à tous)
 router.get("/stock", getBooksStock);
+
+// ✅ Récupérer un livre par ID (accessible à tous)
 router.get("/:id", getBookById);
+
+// ✅ Récupérer tous les livres avec pagination et recherche
 router.get("/", getAllBooks);
 
-
-// Routes protégées (ADMIN uniquement)
+// ✅ Ajouter un livre (PROTÉGÉ - Admin uniquement)
 router.post("/", protect, isAdmin, addBook);
-router.put("/:id", protect, isAdmin, updateBook);
-router.delete("/:id", protect, isAdmin, deleteBook);
 
+// ✅ Modifier un livre (PROTÉGÉ - Admin uniquement)
+router.put("/:id", protect, isAdmin, updateBook);
+
+// ✅ Supprimer un livre (PROTÉGÉ - Admin uniquement)
+router.delete("/:id", protect, isAdmin, deleteBook);
 
 export default router;

@@ -1,14 +1,22 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token"); // 🔹 Vérifie si un token est présent
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
 
-  if (!token) {
-    return <Navigate to="/login" replace />; // 🔹 Redirection vers Login si non connecté
+  // ✅ Évite le clignotement temporaire en attendant l'authentification
+  if (isAuthenticated === null) {
+    return <p className="text-center mt-5">🔄 Chargement en cours...</p>;
   }
 
-  return children;
+  // ✅ Redirige vers `/login` en sauvegardant la page actuelle pour une redirection après connexion
+  return isAuthenticated ? (
+    children
+  ) : (
+    <Navigate to="/login" replace state={{ from: location }} />
+  );
 };
 
 export default ProtectedRoute;

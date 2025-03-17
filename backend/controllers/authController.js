@@ -6,148 +6,193 @@ import sendEmail from "../utils/sendEmail.js";
 
 dotenv.config();
 
+// ✅ Fonction pour générer un token JWT (Access Token - 1h)
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+};
+
+// ✅ Fonction pour générer un Refresh Token (7 jours)
+const generateRefreshToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.REFRESH_SECRET, { expiresIn: "7d" });
+};
+
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      return res.status(400).json({ message: "This email is already in use." });
+      return res.status(400).json({ message: "Cet email est déjà utilisé." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
+    const user = new User({ name, email, password: hashedPassword, isVerified: false });
 
     await user.save();
 
-    // ✅ Generate a verification token valid for 24h
+    // ✅ Vérification que BACKEND_URL est bien défini
+    if (!process.env.BACKEND_URL) {
+      console.error("❌ BACKEND_URL non défini dans .env !");
+      return res.status(500).json({ message: "Erreur serveur, BACKEND_URL manquant." });
+    }
+
+    // ✅ Génération du token de vérification
     const verificationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
-    // ✅ Display the token in the console for debugging
-    console.log("🔗 Verification Token:", verificationToken);
-    console.log(`🔗 Verification Link: http://localhost:5000/api/auth/verify-email/${verificationToken}`);
+    // ✅ Correction de l'URL
+    const verificationLink = `${process.env.BACKEND_URL}/api/auth/verify-email/${verificationToken}`;
 
-    // ✅ Verification email content
-    const verificationLink = `http://localhost:5000/api/auth/verify-email/${verificationToken}`;
+    console.log(`🔗 Lien de vérification envoyé : ${verificationLink}`);
+
+    // ✅ Contenu de l'email
     const emailContent = `
-      <h2>Welcome ${name}!</h2>
-      <p>Click the button below to verify your email address:</p>
-      <a href="${verificationLink}" style="background: green; color: white; padding: 10px; text-decoration: none;">Verify My Email</a>
-      <p>This link expires in 24 hours.</p>
+      <h2>Bienvenue ${name}!</h2>
+      <p>Cliquez sur le bouton ci-dessous pour vérifier votre email :</p>
+      <a href="${verificationLink}" style="background: green; color: white; padding: 10px;">Vérifier mon email</a>
+      <p>Ce lien expirera dans 24 heures.</p>
     `;
 
-    // ✅ Send the email
-    await sendEmail(email, "Verify Your Email", emailContent);
+    await sendEmail(email, "Vérification de votre email", emailContent);
 
-    return res.status(201).json({ message: "Registration successful! Please check your email to verify your account." });
-
+    return res.status(201).json({ message: "Inscription réussie ! Vérifiez votre email pour l'activer." });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("🔥 Erreur serveur lors de l'inscription :", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// 🔹 VÉRIFICATION DE L'EMAIL
+
 export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ message: "User not found." });
-
-    if (user.isVerified) {
-      return res.redirect("http://localhost:5173/login?verified=already");
+    if (!token) {
+      return res.status(400).json({ message: "Token manquant." });
     }
 
+    // ✅ Vérification du token JWT
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (!decoded.id) {
+      return res.status(400).json({ message: "Token invalide." });
+    }
+
+    // ✅ Récupération de l'utilisateur
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
+
+    // ✅ Vérification si l'utilisateur est déjà validé
+    if (user.isVerified) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?verified=already`);
+    }
+
+    // ✅ Mise à jour du statut de vérification
     user.isVerified = true;
     await user.save();
 
-    // ✅ Redirection vers le frontend après vérification réussie
-    return res.redirect("http://localhost:5173/login?verified=success");
+    console.log(`✅ Email vérifié pour l'utilisateur: ${user.email}`);
 
+    return res.redirect(`${process.env.FRONTEND_URL}/login?verified=success`);
   } catch (error) {
-    return res.redirect("http://localhost:5173/login?verified=error");
+    console.error("Erreur lors de la vérification de l'email :", error);
+    return res.redirect(`${process.env.FRONTEND_URL}/login?verified=error`);
   }
 };
 
-
-
-// 🔹 CONNEXION
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
 
+    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
     if (!user.isVerified) return res.status(403).json({ message: "Veuillez vérifier votre email avant de vous connecter." });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Mot de passe incorrect." });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    res.status(200).json({ message: "Connexion réussie", token, user: { name: user.name, email: user.email } });
-
-  } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
-  }
-};
-
-// 🔹 OBTENIR LE PROFIL UTILISATEUR
-export const getProfile = (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Utilisateur non authentifié" });
-    }
-
-    res.status(200).json({
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
+    // ✅ Stocker le token dans un cookie sécurisé
+    res.cookie("token", token, {
+      httpOnly: true, // 🔹 Empêche l'accès au cookie par JavaScript (sécurité)
+      secure: process.env.NODE_ENV === "production", // 🔹 En production, active le HTTPS obligatoire
+      sameSite: "Lax", // 🔹 Contrôle l'envoi du cookie entre les sites (ajuste selon besoin)
     });
+    
+
+    console.log("🟢 Cookie envoyé :", token); // 🔍 Vérifie si le cookie est bien envoyé
+
+    res.status(200).json({ message: "Connexion réussie", user: { name: user.name, email: user.email } });
   } catch (error) {
+    console.error("🔴 Erreur serveur :", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
 
-// 🔹 RENVOI DE L'EMAIL DE VÉRIFICATION
-export const resendVerificationEmail = async (req, res) => {
+
+
+
+
+
+// ✅ Récupérer le profil utilisateur
+export const getProfile = async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findById(req.user.id).select("-password"); // Exclure le mot de passe
 
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
-    if (user.isVerified) return res.status(400).json({ message: "L'email est déjà vérifié." });
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
 
-    const verificationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
-
-    const verificationLink = `http://localhost:5000/api/auth/verify-email/${verificationToken}`;
-    const emailContent = `
-      <h2>Vérification de votre email</h2>
-      <p>Cliquez sur le bouton ci-dessous pour vérifier votre email :</p>
-      <a href="${verificationLink}" style="background: green; color: white; padding: 10px; text-decoration: none;">Vérifier mon email</a>
-    `;
-
-    await sendEmail(user.email, "Vérification de votre email", emailContent);
-
-    res.status(200).json({ message: "Un nouvel email de vérification a été envoyé." });
-
+    res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// 🔹 MOT DE PASSE OUBLIÉ
+
+// ✅ Déconnexion (Logout)
+export const logout = (req, res) => {
+  res.clearCookie("token");
+  res.clearCookie("refreshToken");
+  res.status(200).json({ message: "Déconnexion réussie" });
+};
+
+export const verifyToken = (req, res) => {
+  try {
+    console.log("🟢 Cookies reçus :", req.cookies); // ✅ Vérifie si le cookie `token` est reçu
+
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "Non autorisé, aucun token fourni" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    res.status(200).json({ user: decoded });
+
+  } catch (error) {
+    console.error("🔴 Erreur de vérification du token :", error);
+    res.status(401).json({ message: "Token invalide ou expiré." });
+  }
+};
+
+
+
+
+// ✅ Mot de passe oublié
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé." });
+    }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
-    const resetLink = `http://localhost:5000/api/auth/reset-password/${token}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
     const emailContent = `
       <h2>Réinitialisation de votre mot de passe</h2>
@@ -158,13 +203,12 @@ export const forgotPassword = async (req, res) => {
     await sendEmail(user.email, "Réinitialisation du mot de passe", emailContent);
 
     res.status(200).json({ message: "Un email de réinitialisation a été envoyé." });
-
   } catch (error) {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// 🔹 RÉINITIALISATION DU MOT DE PASSE
+
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -178,8 +222,7 @@ export const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    res.status(200).json({ message: "Mot de passe réinitialisé avec succès." });
-
+    res.status(200).json({ message: "Mot de passe réinitialisé avec succès !" });
   } catch (error) {
     res.status(400).json({ message: "Lien invalide ou expiré." });
   }
