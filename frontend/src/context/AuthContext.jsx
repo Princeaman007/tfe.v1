@@ -11,61 +11,85 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Vérification du token
+  // ✅ Vérification du token et récupération de l'utilisateur
   const verifyToken = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/auth/verify", {
-        withCredentials: true, // ✅ Envoie bien les cookies sécurisés
+        withCredentials: true,
       });
 
-      console.log("🟢 Token vérifié :", response.data); // 🔍 Debug
+      console.log("🟢 Token vérifié :", response.data);
 
       if (response.status === 200) {
         setIsAuthenticated(true);
         setUser(response.data.user);
+        localStorage.setItem("user", JSON.stringify(response.data.user)); // ✅ Stockage persistant
       } else {
         setIsAuthenticated(false);
+        localStorage.removeItem("user");
       }
     } catch (error) {
       console.error("🔴 Erreur lors de la vérification du token :", error);
       setIsAuthenticated(false);
+      localStorage.removeItem("user");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    verifyToken();
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setIsAuthenticated(true);
+      setLoading(false);
+    } else {
+      verifyToken();
+    }
   }, []);
 
-  // ✅ Connexion
+  // ✅ Connexion avec gestion des rôles et redirection
   const login = async (credentials) => {
     try {
       const response = await axios.post("http://localhost:5000/api/auth/login", credentials, {
-        withCredentials: true, // ✅ Envoie bien les cookies
+        withCredentials: true,
       });
 
-      console.log("🟢 Réponse du serveur après login :", response.data); // 🔍 Debug
+      console.log("🟢 Connexion réussie :", response.data);
 
       if (response.status === 200) {
-        await verifyToken(); // 🔄 Vérification après connexion
-        navigate("/dashboard"); // ✅ Redirige uniquement si l'auth est confirmée
+        setIsAuthenticated(true);
+        setUser(response.data.user);
+        localStorage.setItem("user", JSON.stringify(response.data.user)); // ✅ Stocker les infos utilisateur
+
+        // 🔀 Redirection intelligente : dernière page visitée ou dashboard
+        const from = location.state?.from?.pathname || "/dashboard";
+        navigate(from);
       }
     } catch (error) {
       console.error("🔴 Erreur de connexion :", error.response?.data?.message || "Erreur inconnue");
+      alert(error.response?.data?.message || "Identifiants incorrects !");
     }
   };
 
-  // ✅ Déconnexion
+  // ✅ Mise à jour de l'utilisateur après un changement de profil
+  const updateUserProfile = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
+  // ✅ Déconnexion avec suppression des données stockées
   const logout = async () => {
     try {
       await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
 
       setIsAuthenticated(false);
       setUser(null);
-      navigate("/"); // ✅ Redirige vers l'accueil après déconnexion
+      localStorage.removeItem("user"); // ✅ Suppression du stockage utilisateur
+      navigate("/"); // ✅ Retour à l'accueil
     } catch (error) {
       console.error("🔴 Erreur lors de la déconnexion :", error);
+      alert("Erreur lors de la déconnexion, veuillez réessayer.");
     }
   };
 
@@ -75,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, updateUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

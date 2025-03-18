@@ -4,37 +4,39 @@ import User from "../models/userModel.js";
 
 dotenv.config();
 
+/**
+ * 🔒 Middleware pour protéger les routes (utilisateur connecté requis)
+ */
 export const protect = async (req, res, next) => {
   try {
-    console.log("🟢 Cookies reçus :", req.cookies); // ✅ Vérifier les cookies reçus
+    console.log("🟢 Cookies reçus :", req.cookies); // ✅ Debug : Afficher les cookies reçus
 
-    // 📌 Extraction du token depuis les cookies
-    const token = req.cookies.token || req.cookies["sb-wzayhciqmeudvzppnjyx-auth-token"];
+    // 📌 Extraction du token (cookies ou Authorization header)
+    let token = req.cookies.token || req.cookies["sb-wzayhciqmeudvzppnjyx-auth-token"];
+
+    if (!token && req.headers.authorization?.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
 
     if (!token) {
       return res.status(401).json({ message: "Non autorisé, aucun token fourni" });
     }
 
     try {
-      // ✅ Vérifier le token
+      // ✅ Vérification du token JWT
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // ✅ Récupérer l'utilisateur en excluant le mot de passe
+      // ✅ Récupération de l'utilisateur sans le mot de passe
       req.user = await User.findById(decoded.id).select("-password");
 
       if (!req.user) {
         return res.status(401).json({ message: "Utilisateur non trouvé" });
       }
 
-      // 📌 Vérification si l'utilisateur a confirmé son email
-      if (!req.user.isVerified) {
-        return res.status(403).json({ message: "Veuillez vérifier votre e-mail avant d’accéder à cette ressource." });
-      }
-
       next();
     } catch (error) {
       console.error("🔴 Erreur de vérification du token :", error.message);
-      
+
       // 🔥 Supprimer le cookie invalide si le token est expiré
       res.clearCookie("token", {
         httpOnly: true,
@@ -50,7 +52,20 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// ✅ Vérification du rôle d'Administrateur
+/**
+ * 📌 Vérifie si l'utilisateur a confirmé son email
+ */
+export const isVerified = (req, res, next) => {
+  if (req.user && req.user.isVerified) {
+    next();
+  } else {
+    return res.status(403).json({ message: "Veuillez vérifier votre e-mail avant d’accéder à cette ressource." });
+  }
+};
+
+/**
+ * 🔐 Vérifie si l'utilisateur est Administrateur ou Super Administrateur
+ */
 export const isAdmin = (req, res, next) => {
   if (req.user && (req.user.role === "admin" || req.user.role === "superadmin")) {
     next();
@@ -59,7 +74,9 @@ export const isAdmin = (req, res, next) => {
   }
 };
 
-// ✅ Vérification du rôle de Super Administrateur
+/**
+ * 🔥 Vérifie si l'utilisateur est Super Administrateur
+ */
 export const isSuperAdmin = (req, res, next) => {
   if (req.user && req.user.role === "superadmin") {
     next();

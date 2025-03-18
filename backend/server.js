@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser"; // ✅ Gestion des cookies
+import path from "path";
+import fs from "fs"; // ✅ Gestion des fichiers pour `uploads/`
+import helmet from "helmet"; // ✅ Sécurisation des entêtes HTTP
 import connectDB from "./config/database.js"; // ✅ Connexion à MongoDB
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
@@ -19,8 +22,11 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ Sécurisation des entêtes HTTP
+app.use(helmet());
+
 // ✅ Configuration de CORS avec plusieurs origines autorisées
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"]; // ✅ Ajout de plusieurs URLs
+const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
 
 app.use(
   cors({
@@ -28,7 +34,8 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("❌ CORS: Requête non autorisée"));
+        console.error(`❌ CORS: L'origine ${origin} est bloquée.`);
+        callback(new Error("CORS: Requête non autorisée"));
       }
     },
     credentials: true, // ✅ Permet d'envoyer et recevoir des cookies sécurisés
@@ -36,11 +43,17 @@ app.use(
   })
 );
 
-// ✅ Log des cookies pour debug (Décommenter si besoin)
-// app.use((req, res, next) => {
-//   console.log("🟢 Cookies reçus :", req.cookies);
-//   next();
-// });
+// 📌 **Créer `uploads/` s'il n'existe pas**
+const __dirname = path.resolve();
+const uploadsDir = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("📂 Dossier `uploads/` créé automatiquement.");
+}
+
+// 📌 **Servir correctement les fichiers du dossier `uploads/`**
+app.use("/uploads", express.static(uploadsDir)); // ✅ Assure que les images sont servies correctement
 
 // ✅ Routes API
 app.use("/api/auth", authRoutes);
@@ -67,4 +80,7 @@ app.use((err, req, res, next) => {
 
 // ✅ Démarrage du Serveur
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+  console.log(`📂 Les fichiers uploadés sont accessibles sur http://localhost:${PORT}/uploads/`);
+});
