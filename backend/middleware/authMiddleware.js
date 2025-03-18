@@ -12,14 +12,14 @@ export const protect = async (req, res, next) => {
     console.log("🟢 Cookies reçus :", req.cookies); // ✅ Debug : Afficher les cookies reçus
 
     // 📌 Extraction du token (cookies ou Authorization header)
-    let token = req.cookies.token || req.cookies["sb-wzayhciqmeudvzppnjyx-auth-token"];
+    let token = req.cookies?.token || req.cookies?.["sb-wzayhciqmeudvzppnjyx-auth-token"];
 
     if (!token && req.headers.authorization?.startsWith("Bearer")) {
       token = req.headers.authorization.split(" ")[1];
     }
 
     if (!token) {
-      return res.status(401).json({ message: "Non autorisé, aucun token fourni" });
+      return res.status(401).json({ message: "❌ Non autorisé, aucun token fourni." });
     }
 
     try {
@@ -30,7 +30,7 @@ export const protect = async (req, res, next) => {
       req.user = await User.findById(decoded.id).select("-password");
 
       if (!req.user) {
-        return res.status(401).json({ message: "Utilisateur non trouvé" });
+        return res.status(401).json({ message: "❌ Utilisateur non trouvé." });
       }
 
       next();
@@ -44,11 +44,11 @@ export const protect = async (req, res, next) => {
         sameSite: "strict",
       });
 
-      return res.status(401).json({ message: "Token invalide ou expiré." });
+      return res.status(401).json({ message: "❌ Token invalide ou expiré." });
     }
   } catch (error) {
     console.error("🔴 Erreur serveur :", error.message);
-    res.status(500).json({ message: "Erreur serveur" });
+    res.status(500).json({ message: "🔥 Erreur interne du serveur." });
   }
 };
 
@@ -56,31 +56,43 @@ export const protect = async (req, res, next) => {
  * 📌 Vérifie si l'utilisateur a confirmé son email
  */
 export const isVerified = (req, res, next) => {
-  if (req.user && req.user.isVerified) {
-    next();
-  } else {
-    return res.status(403).json({ message: "Veuillez vérifier votre e-mail avant d’accéder à cette ressource." });
+  if (!req.user) {
+    return res.status(401).json({ message: "❌ Non autorisé, utilisateur introuvable." });
   }
+
+  if (!req.user.isVerified) {
+    return res.status(403).json({ message: "📩 Veuillez vérifier votre e-mail avant d’accéder à cette ressource." });
+  }
+
+  next();
 };
 
 /**
  * 🔐 Vérifie si l'utilisateur est Administrateur ou Super Administrateur
  */
 export const isAdmin = (req, res, next) => {
-  if (req.user && (req.user.role === "admin" || req.user.role === "superadmin")) {
-    next();
-  } else {
-    return res.status(403).json({ message: "Accès refusé, privilèges insuffisants." });
+  if (!req.user) {
+    return res.status(401).json({ message: "❌ Non autorisé, utilisateur introuvable." });
   }
+
+  if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "🔒 Accès refusé, privilèges insuffisants." });
+  }
+
+  next();
 };
 
 /**
  * 🔥 Vérifie si l'utilisateur est Super Administrateur
  */
 export const isSuperAdmin = (req, res, next) => {
-  if (req.user && req.user.role === "superadmin") {
-    next();
-  } else {
-    return res.status(403).json({ message: "Accès refusé, seul un Super Administrateur peut effectuer cette action." });
+  if (!req.user) {
+    return res.status(401).json({ message: "❌ Non autorisé, utilisateur introuvable." });
   }
+
+  if (req.user.role !== "superadmin") {
+    return res.status(403).json({ message: "🔥 Accès refusé, seul un Super Administrateur peut effectuer cette action." });
+  }
+
+  next();
 };

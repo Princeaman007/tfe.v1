@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser"; // ✅ Gestion des cookies
-import path from "path";
-import fs from "fs"; // ✅ Gestion des fichiers pour `uploads/`
 import helmet from "helmet"; // ✅ Sécurisation des entêtes HTTP
 import connectDB from "./config/database.js"; // ✅ Connexion à MongoDB
 import authRoutes from "./routes/authRoutes.js";
@@ -43,18 +41,6 @@ app.use(
   })
 );
 
-// 📌 **Créer `uploads/` s'il n'existe pas**
-const __dirname = path.resolve();
-const uploadsDir = path.join(__dirname, "uploads");
-
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log("📂 Dossier `uploads/` créé automatiquement.");
-}
-
-// 📌 **Servir correctement les fichiers du dossier `uploads/`**
-app.use("/uploads", express.static(uploadsDir)); // ✅ Assure que les images sont servies correctement
-
 // ✅ Routes API
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
@@ -82,5 +68,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
-  console.log(`📂 Les fichiers uploadés sont accessibles sur http://localhost:${PORT}/uploads/`);
 });
