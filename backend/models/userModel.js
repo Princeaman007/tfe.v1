@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
     role: { type: String, enum: ["user", "admin", "superadmin"], default: "user" },
-    profilePicture: { type: String, default: "https://randomuser.me/api/portraits/men/70.jpg" }, // ✅ URL par défaut
   },
   { timestamps: true }
 );
