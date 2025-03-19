@@ -105,7 +105,7 @@ export const verifyEmail = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("name email role password isVerified");
 
     if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
     if (!user.isVerified) return res.status(403).json({ message: "Veuillez vérifier votre email avant de vous connecter." });
@@ -117,15 +117,24 @@ export const login = async (req, res) => {
 
     // ✅ Stocker le token dans un cookie sécurisé
     res.cookie("token", token, {
-      httpOnly: true, // 🔹 Empêche l'accès au cookie par JavaScript (sécurité)
-      secure: process.env.NODE_ENV === "production", // 🔹 En production, active le HTTPS obligatoire
-      sameSite: "Lax", // 🔹 Contrôle l'envoi du cookie entre les sites (ajuste selon besoin)
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "Lax"
     });
-    
 
-    console.log("🟢 Cookie envoyé :", token); // 🔍 Vérifie si le cookie est bien envoyé
+    console.log("🟢 Cookie envoyé :", token);
+    console.log("🔍 [Backend] - Utilisateur trouvé :", user); // ✅ Vérification
 
-    res.status(200).json({ message: "Connexion réussie", user: { name: user.name, email: user.email } });
+    res.status(200).json({ 
+      message: "Connexion réussie", 
+      user: { 
+        id: user._id,
+        name: user.name, 
+        email: user.email,
+        role: user.role // ✅ Maintenant `role` est bien inclus
+      } 
+    });
+
   } catch (error) {
     console.error("🔴 Erreur serveur :", error);
     res.status(500).json({ message: "Erreur serveur" });
