@@ -5,6 +5,9 @@ import {
   Container, Row, Col, Image, Button, Spinner, Alert, Badge, Form
 } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -35,9 +38,12 @@ const BookDetails = () => {
 
   const fetchBook = async () => {
     try {
+      console.log("📦 ID reçu depuis l'URL :", id);
       const res = await axios.get(`http://localhost:5000/api/books/${id}`);
+      console.log("✅ Réponse backend :", res.data);
       setBook(res.data);
     } catch (err) {
+      console.error("❌ Erreur fetchBook :", err.message);
       setError("Impossible de charger ce livre.");
     } finally {
       setLoading(false);
@@ -63,52 +69,76 @@ const BookDetails = () => {
     }
   };
 
+  const handleFavorite = () => {
+    if (!isAuthenticated) {
+      alert("Connectez-vous pour ajouter aux favoris.");
+      return;
+    }
+
+    setIsFavorited((prev) => !prev);
+
+    // Optionnel : ici tu peux appeler le backend pour enregistrer le favori
+    // await axios.post("/api/favorites", { bookId: book._id }, { withCredentials: true });
+  };
+
   const handleRent = async () => {
     if (!isAuthenticated) {
       alert("Veuillez vous connecter pour louer.");
       return;
     }
-
+  
     if (!book?._id) {
       alert("Le livre n'est pas encore chargé.");
       return;
     }
-
+  
     try {
-      const res = await axios.post("http://localhost:5000/api/payment/create-checkout-session", {
-        bookId: book._id,
-      }, { withCredentials: true });
-      
-
-      const { url } = res.data;
-      window.location.href = url;
-
+      const res = await axios.post(
+        "http://localhost:5000/api/payment/create-checkout-session",
+        { bookId: book._id },
+        { withCredentials: true }
+      );
+  
+      const sessionId = res.data.id;
+  
+      if (!sessionId) {
+        console.error("❌ ID de session manquant dans la réponse backend.");
+        alert("Erreur : ID de session Stripe manquant.");
+        return;
+      }
+  
+      console.log("📦 Session ID reçu côté frontend :", sessionId);
+  
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId });
+  
     } catch (err) {
       console.error("❌ Erreur lors de la création de la session Stripe :", err);
       alert("Erreur lors du paiement. Veuillez réessayer.");
     }
   };
-
-  const handleFavorite = () => {
-    if (!isAuthenticated) return alert("Connectez-vous pour ajouter aux favoris.");
-    setIsFavorited(prev => !prev);
-  };
+  
 
   const handleSubmitComment = async () => {
     if (!isAuthenticated) return alert("Connectez-vous pour commenter.");
     if (!commentInput.trim()) return;
 
     try {
-      await axios.post("http://localhost:5000/api/reviews", {
-        bookId: id,
-        rating,
-        comment: commentInput,
-      }, { withCredentials: true });
+      await axios.post(
+        "http://localhost:5000/api/reviews",
+        {
+          bookId: id,
+          rating,
+          comment: commentInput,
+        },
+        { withCredentials: true }
+      );
+
       setCommentInput("");
       setRating(5);
       fetchReviews();
     } catch (error) {
-      console.error("Erreur lors de l'envoi du commentaire :", error);
+      console.error("❌ Erreur lors de l'envoi du commentaire :", error.response?.data || error.message);
     }
   };
 
@@ -159,21 +189,6 @@ const BookDetails = () => {
           <p className="lead mb-4" style={{ lineHeight: "1.8", color: "#333" }}>
             {book.description || "Aucune description disponible pour ce livre."}
           </p>
-
-          <div className="d-flex align-items-center gap-5 mb-4">
-            <div>
-              <h6 className="mb-1">Prix :</h6>
-              <span className="fs-4 fw-semibold text-success">
-                {typeof book.price === "number" ? `${book.price.toFixed(2)} €` : "Non défini"}
-              </span>
-            </div>
-            <div>
-              <h6 className="mb-1">Disponibilité :</h6>
-              <span className={`badge ${book.availableCopies > 0 ? "bg-success" : "bg-danger"}`}>
-                {book.availableCopies > 0 ? `${book.availableCopies} en stock` : "Indisponible"}
-              </span>
-            </div>
-          </div>
 
           <div className="d-flex flex-wrap gap-3 mt-3">
             <Button variant="primary" size="lg" onClick={handleRent}>

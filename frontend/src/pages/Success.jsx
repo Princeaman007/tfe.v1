@@ -49,7 +49,7 @@ const Success = () => {
     return (
       <Container className="py-5 text-center">
         <Alert variant="danger">{error}</Alert>
-        <Link to="/books" className="btn btn-outline-primary mt-3">Retour à la boutique</Link>
+        <Link to="/dashboard" className="btn btn-outline-primary mt-3">Retour à la boutique</Link>
       </Container>
     );
   }

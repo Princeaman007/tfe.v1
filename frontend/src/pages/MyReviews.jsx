@@ -1,10 +1,10 @@
 import React from "react";
+import ReviewList from "../components/ReviewList"; // Assure-toi du bon chemin relatif
 
 const MyReviews = () => {
   return (
     <div>
-      <h2>📝 Mes Avis</h2>
-      <p>Gérez les avis que vous avez laissés sur les livres.</p>
+      <ReviewList />
     </div>
   );
 };

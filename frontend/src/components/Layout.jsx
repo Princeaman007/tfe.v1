@@ -49,12 +49,6 @@ const Layout = () => {
             <li className="nav-item">
               <NavLink to="/dashboard" className="nav-link text-white">
                 <i className="fas fa-tachometer-alt me-2"></i>
-                {!collapsed && "Tableau de Bord"}
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/library" className="nav-link text-white">
-                <i className="fas fa-book me-2"></i>
                 {!collapsed && "Bibliothèque"}
               </NavLink>
             </li>
