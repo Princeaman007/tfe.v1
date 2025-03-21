@@ -6,6 +6,7 @@ import {
   getAllBooks,
   getBooksStock,
   getBookById,
+  toggleLikeBook
 } from "../controllers/bookController.js";
 import { protect, isAdmin } from "../middleware/authMiddleware.js";
 
@@ -28,5 +29,7 @@ router.put("/:id", protect, isAdmin, updateBook);
 
 // ✅ Supprimer un livre (PROTÉGÉ - Admin uniquement)
 router.delete("/:id", protect, isAdmin, deleteBook);
+
+router.post("/:id/like", protect, toggleLikeBook);
 
 export default router;

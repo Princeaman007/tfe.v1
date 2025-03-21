@@ -1,68 +1,90 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import ""; // Pour les styles CSS
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 
-  const toggleSidebar = () => {
-    setCollapsed(!collapsed);
-  };
-
   return (
-    <div className="d-flex">
-      {/* Sidebar */}
-      <nav className={`sidebar d-flex flex-column flex-shrink-0 position-fixed ${collapsed ? "collapsed" : ""}`}>
-        <button className="toggle-btn" onClick={toggleSidebar}>
-          <i className={`fas ${collapsed ? "fa-chevron-right" : "fa-chevron-left"}`}></i>
-        </button>
+    <div className="container-fluid">
+      <div className="row flex-nowrap">
+        {/* Sidebar */}
+        <div className={`col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark min-vh-100 d-flex flex-column justify-content-between ${collapsed ? "collapsed" : ""}`}>
+          <div className="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white">
+            <button
+              className="btn btn-outline-light w-100 mb-3"
+              onClick={() => setCollapsed(!collapsed)}
+            >
+              {collapsed ? (
+                <i className="fas fa-chevron-right"></i>
+              ) : (
+                <i className="fas fa-chevron-left"></i>
+              )}
+            </button>
 
-        <div className="p-4">
-          <h4 className="logo-text fw-bold mb-0">NexusFlow</h4>
-          {!collapsed && <p className="text-muted small">Dashboard</p>}
-        </div>
+            <Link
+              to="/"
+              className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
+            >
+              <span className="fs-4 d-none d-sm-inline fw-bold">NexusFlow</span>
+            </Link>
+            <span className="text-muted d-none d-sm-inline small mb-3">Dashboard</span>
 
-        {/* Navigation */}
-        <div className="nav flex-column">
-          <Link to="/" className="sidebar-link active text-decoration-none p-3">
-            <i className="fas fa-home me-3"></i>
-            {!collapsed && <span>Dashboard</span>}
-          </Link>
-          <Link to="/analytics" className="sidebar-link text-decoration-none p-3">
-            <i className="fas fa-chart-bar me-3"></i>
-            {!collapsed && <span>Analytics</span>}
-          </Link>
-          <Link to="/customers" className="sidebar-link text-decoration-none p-3">
-            <i className="fas fa-users me-3"></i>
-            {!collapsed && <span>Customers</span>}
-          </Link>
-          <Link to="/products" className="sidebar-link text-decoration-none p-3">
-            <i className="fas fa-box me-3"></i>
-            {!collapsed && <span>Products</span>}
-          </Link>
-          <Link to="/settings" className="sidebar-link text-decoration-none p-3">
-            <i className="fas fa-gear me-3"></i>
-            {!collapsed && <span>Settings</span>}
-          </Link>
-        </div>
+            <ul className="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start w-100">
+              <li className="nav-item w-100">
+                <Link to="/" className="nav-link text-white px-0 align-middle">
+                  <i className="fas fa-home me-2"></i>
+                  <span className="d-none d-sm-inline">Dashboard</span>
+                </Link>
+              </li>
+              <li className="nav-item w-100">
+                <Link to="/analytics" className="nav-link text-white px-0 align-middle">
+                  <i className="fas fa-chart-bar me-2"></i>
+                  <span className="d-none d-sm-inline">Analytics</span>
+                </Link>
+              </li>
+              <li className="nav-item w-100">
+                <Link to="/customers" className="nav-link text-white px-0 align-middle">
+                  <i className="fas fa-users me-2"></i>
+                  <span className="d-none d-sm-inline">Customers</span>
+                </Link>
+              </li>
+              <li className="nav-item w-100">
+                <Link to="/products" className="nav-link text-white px-0 align-middle">
+                  <i className="fas fa-box me-2"></i>
+                  <span className="d-none d-sm-inline">Products</span>
+                </Link>
+              </li>
+              <li className="nav-item w-100">
+                <Link to="/settings" className="nav-link text-white px-0 align-middle">
+                  <i className="fas fa-gear me-2"></i>
+                  <span className="d-none d-sm-inline">Settings</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-        {/* Profile Section */}
-        <div className="profile-section mt-auto p-4">
-          <div className="d-flex align-items-center">
-            <img src="https://randomuser.me/api/portraits/women/70.jpg" style={{ height: "60px" }} className="rounded-circle" alt="Profile" />
-            {!collapsed && (
-              <div className="ms-3 profile-info">
-                <h6 className="text-white mb-0">Alex Morgan</h6>
-                <small className="text-muted">Admin</small>
-              </div>
-            )}
+          {/* Profile Section */}
+          <div className="d-flex align-items-center p-3 text-white border-top">
+            <img
+              src="https://randomuser.me/api/portraits/women/70.jpg"
+              alt="Profile"
+              className="rounded-circle me-2"
+              width="40"
+              height="40"
+            />
+            <div className="d-none d-sm-block">
+              <h6 className="mb-0">Alex Morgan</h6>
+              <small className="text-muted">Admin</small>
+            </div>
           </div>
         </div>
-      </nav>
 
-      {/* Contenu principal */}
-      <div className={`content ${collapsed ? "expanded" : ""}`}>
-        <h1 className="p-4">Dashboard Content</h1>
+        {/* Main content */}
+        <div className="col py-3">
+          <h1>📊 Dashboard Content</h1>
+          <p>Contenu principal ici...</p>
+        </div>
       </div>
     </div>
   );

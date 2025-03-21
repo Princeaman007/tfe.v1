@@ -1,12 +1,15 @@
 import React from "react";
+import BooksList from "../components/BooksList"; // Assure-toi que le chemin est correct
 
 const Dashboard = () => {
   return (
-    <div className="container text-center mt-5">
-      <h2 className="text-primary">Welcome to your Dashboard</h2>
-      <p className="text-muted">This is your secure area.</p>
+    <div className="container mt-4">
+     
+      {/* ✅ Liste des livres */}
+      <BooksList />
     </div>
   );
 };
 
 export default Dashboard;
+

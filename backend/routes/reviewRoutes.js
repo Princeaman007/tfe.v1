@@ -1,19 +1,18 @@
 import express from "express";
-import { addReview, getBookReviews, toggleLikeBook, getBookRating } from "../controllers/reviewController.js";
+import { addReview, getReviewsForBook } from "../controllers/reviewController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { deleteReview } from "../controllers/reviewController.js";
 
 const router = express.Router();
 
-// 🔹 Ajouter un avis (Utilisateur uniquement)
+// ✅ Ajouter un avis (nécessite d’être connecté)
 router.post("/", protect, addReview);
 
-// 🔹 Récupérer les avis d'un livre
-router.get("/:bookId", getBookReviews);
+// ✅ Récupérer les avis d’un livre
+router.get("/:bookId", getReviewsForBook);
 
-// 🔹 Liker / Unliker un livre (Utilisateur uniquement)
-router.post("/like", protect, toggleLikeBook);
+router.delete("/:reviewId", protect, deleteReview);
 
-// 🔹 Récupérer la note moyenne d'un livre
-router.get("/rating/:bookId", getBookRating);
+
 
 export default router;

@@ -7,7 +7,8 @@ const bookSchema = new mongoose.Schema(
     description: { type: String },
     genre: { type: String, required: true },
     publishedYear: { type: Number },
-    coverImage: { type: String }, // URL de l'image
+    coverImage: { type: String }, 
+    price: { type: Number, required: true },
     availableCopies: { type: Number, required: true, default: 1 },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Utilisateurs qui aiment ce livre
   },
