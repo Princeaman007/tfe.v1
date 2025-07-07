@@ -75,7 +75,7 @@ export const isAdmin = (req, res, next) => {
     return res.status(401).json({ message: "❌ Non autorisé, utilisateur introuvable." });
   }
 
-  if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+  if (req.user.role !== "admin" && req.user.role !== "superAdmin") {
     return res.status(403).json({ message: "🔒 Accès refusé, privilèges insuffisants." });
   }
 
@@ -85,12 +85,12 @@ export const isAdmin = (req, res, next) => {
 /**
  * 🔥 Vérifie si l'utilisateur est Super Administrateur
  */
-export const isSuperAdmin = (req, res, next) => {
+export const issuperAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: "❌ Non autorisé, utilisateur introuvable." });
   }
 
-  if (req.user.role !== "superadmin") {
+  if (req.user.role !== "superAdmin") {
     return res.status(403).json({ message: "🔥 Accès refusé, seul un Super Administrateur peut effectuer cette action." });
   }
 

@@ -71,7 +71,7 @@ const Layout = () => {
               </NavLink>
             </li>
 
-            {user?.role === "admin" || user?.role === "superadmin" ? (
+            {user?.role === "admin" || user?.role === "superAdmin" ? (
               <>
                 <li className="nav-item">
                   <NavLink to="/add-book" className="nav-link text-white">
@@ -94,7 +94,7 @@ const Layout = () => {
               </>
             ) : null}
 
-            {user?.role === "superadmin" && (
+            {user?.role === "superAdmin" && (
               <>
                 <li className="nav-item">
                   <NavLink to="/manage-users" className="nav-link text-white">

@@ -73,8 +73,8 @@ const App = () => {
             <Route path="analytics" element={<ProtectedRoute role="admin"><Analytics /></ProtectedRoute>} />
 
             {/* 🔥 Routes Super Admin */}
-            <Route path="manage-users" element={<ProtectedRoute role="superadmin"><ManageUsers /></ProtectedRoute>} />
-            <Route path="security-logs" element={<ProtectedRoute role="superadmin"><SecurityLogs /></ProtectedRoute>} />
+            <Route path="manage-users" element={<ProtectedRoute role="superAdmin"><ManageUsers /></ProtectedRoute>} />
+            <Route path="security-logs" element={<ProtectedRoute role="superAdmin"><SecurityLogs /></ProtectedRoute>} />
           </Route>
         </Routes>
 

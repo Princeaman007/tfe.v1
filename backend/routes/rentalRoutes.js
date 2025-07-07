@@ -12,7 +12,7 @@ import {
     sendFineNotification
 } from "../controllers/rentalController.js";
 
-import { protect, isSuperAdmin } from "../middleware/authMiddleware.js";
+import { protect, issuperAdmin } from "../middleware/authMiddleware.js";
 import Rental from "../models/rentalModel.js";
 
 const router = express.Router();
@@ -23,12 +23,12 @@ router.post("/return", protect, returnBookImproved);   // ✅ Retourner un livre
 router.get("/", protect, getUserRentals);      // ✅ Voir ses propres locations (simple)
 router.get("/detailed", protect, getUserRentalsDetailed); // ✅ Voir ses locations avec détails
 
-// 🔹 Gestion des locations (Superadmin uniquement)
-router.get("/admin/all", protect, isSuperAdmin, getAllRentals);       // ✅ Voir toutes les locations
-router.get("/admin/user/:userId", protect, isSuperAdmin, getUserRentalsByAdmin); // ✅ Voir les locations d'un utilisateur
+// 🔹 Gestion des locations (superAdmin uniquement)
+router.get("/admin/all", protect, issuperAdmin, getAllRentals);       // ✅ Voir toutes les locations
+router.get("/admin/user/:userId", protect, issuperAdmin, getUserRentalsByAdmin); // ✅ Voir les locations d'un utilisateur
 
-// 🔹 Routes de gestion des retards (Superadmin uniquement)
-router.get("/admin/overdue", protect, isSuperAdmin, async (req, res) => {
+// 🔹 Routes de gestion des retards (superAdmin uniquement)
+router.get("/admin/overdue", protect, issuperAdmin, async (req, res) => {
     try {
         const overdueRentals = await Rental.find({ overdue: true })
             .populate("user", "name email")
@@ -39,8 +39,8 @@ router.get("/admin/overdue", protect, isSuperAdmin, async (req, res) => {
     }
 });
 
-// 🔹 Forcer la vérification des retards (Superadmin uniquement)
-router.get("/admin/check-overdue", protect, isSuperAdmin, async (req, res) => {
+// 🔹 Forcer la vérification des retards (superAdmin uniquement)
+router.get("/admin/check-overdue", protect, issuperAdmin, async (req, res) => {
     try {
         await checkOverdueRentals();
         res.status(200).json({ message: "Vérification des livres en retard effectuée avec succès." });
@@ -49,7 +49,7 @@ router.get("/admin/check-overdue", protect, isSuperAdmin, async (req, res) => {
     }
 });
 
-router.get("/admin/fines", protect, isSuperAdmin, async (req, res) => {
+router.get("/admin/fines", protect, issuperAdmin, async (req, res) => {
     try {
         const unpaidFines = await Rental.find({ fineAmount: { $gt: 0 }, finePaid: false })
             .populate("user", "name email")
@@ -62,7 +62,7 @@ router.get("/admin/fines", protect, isSuperAdmin, async (req, res) => {
 });
 
 // 🔹 Forcer l'envoi des emails de rappel pour les amendes impayées (Admin uniquement)
-router.get("/admin/send-fine-notifications", protect, isSuperAdmin, async (req, res) => {
+router.get("/admin/send-fine-notifications", protect, issuperAdmin, async (req, res) => {
     try {
         await sendFineNotification();
         res.status(200).json({ message: "Emails de rappel pour les amendes envoyés avec succès." });

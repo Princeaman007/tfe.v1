@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, role }) => {
     const roleHierarchy = {
       user: 1,
       admin: 2,
-      superadmin: 3
+      superAdmin: 3
     };
 
     const userRoleLevel = roleHierarchy[user?.role] || 0;
