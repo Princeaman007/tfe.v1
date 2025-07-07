@@ -39,7 +39,7 @@ export const register = async (req, res) => {
     // ✅ Génération du token de vérification
     const verificationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
-    // ✅ Correction de l'URL
+   
     const verificationLink = `${process.env.BACKEND_URL}/api/auth/verify-email/${verificationToken}`;
 
     console.log(`🔗 Lien de vérification envoyé : ${verificationLink}`);

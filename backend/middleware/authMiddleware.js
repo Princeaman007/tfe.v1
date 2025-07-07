@@ -9,7 +9,7 @@ dotenv.config();
  */
 export const protect = async (req, res, next) => {
   try {
-    console.log("🟢 Cookies reçus :", req.cookies); // ✅ Debug : Afficher les cookies reçus
+    // console.log("🟢 Cookies reçus :", req.cookies); // ✅ Debug : Afficher les cookies reçus
 
     // 📌 Extraction du token (cookies ou Authorization header)
     let token = req.cookies?.token || req.cookies?.["sb-wzayhciqmeudvzppnjyx-auth-token"];
