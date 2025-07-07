@@ -1,5 +1,7 @@
+// frontend/src/App.jsx - Structure de routes corrigée
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
 
 // 📦 Contexts & Wrappers
 import { AuthProvider } from "./context/AuthContext";
@@ -9,6 +11,7 @@ import Layout from "./components/Layout";
 // 🎨 Styles
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
+import 'react-toastify/dist/ReactToastify.css';
 
 // 🌍 Pages publiques
 import Home from "./pages/Home";
@@ -43,22 +46,20 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
-
-          {/* 🌍 Pages accessibles à tous */}
+          {/* 🌍 Pages accessibles à tous (sans Layout) */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-
-          {/* 📚 Catalogue de livres (accessible à tous) */}
-          <Route path="/books" element={<BooksList />} />
-          <Route path="/books/:id" element={<BookDetails />} />
           <Route path="/success" element={<Success />} />
 
-          {/* 🔐 Routes nécessitant une connexion */}
-          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          {/* 📚 Catalogue de livres (accessible à tous, sans Layout) */}
+          <Route path="/books" element={<BooksList />} />
+          <Route path="/books/:id" element={<BookDetails />} />
 
-            {/* 👤 Utilisateur (Accès Standard) */}
+          {/* 🔐 Routes protégées avec Layout */}
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            {/* 👤 Routes utilisateur standard */}
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="library" element={<Library />} />
             <Route path="my-rentals" element={<MyRentals />} />
@@ -66,17 +67,30 @@ const App = () => {
             <Route path="favorites" element={<Favorites />} />
             <Route path="profile" element={<Profile />} />
 
-            {/* 🛠 Admin (Accès Restreint) */}
+            {/* 🛠 Routes Admin */}
             <Route path="add-book" element={<ProtectedRoute role="admin"><AddBook /></ProtectedRoute>} />
             <Route path="manage-books" element={<ProtectedRoute role="admin"><ManageBooks /></ProtectedRoute>} />
             <Route path="analytics" element={<ProtectedRoute role="admin"><Analytics /></ProtectedRoute>} />
 
-            {/* 🔥 Super Admin (Accès Très Restreint) */}
+            {/* 🔥 Routes Super Admin */}
             <Route path="manage-users" element={<ProtectedRoute role="superadmin"><ManageUsers /></ProtectedRoute>} />
             <Route path="security-logs" element={<ProtectedRoute role="superadmin"><SecurityLogs /></ProtectedRoute>} />
-
           </Route>
         </Routes>
+
+        {/* ✅ Configuration des toasts */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </AuthProvider>
     </Router>
   );

@@ -11,6 +11,7 @@ import userRoutes from "./routes/userRoutes.js";
 import rentalRoutes from "./routes/rentalRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js"; // ✅ Ajout des routes de paiement
+import favoriteRoutes from "./routes/favoriteRoutes.js";
 import cron from "node-cron"; // ✅ Importation de node-cron pour automatiser les tâches
 import { checkOverdueRentals } from "./controllers/rentalController.js"; // ✅ Importation de la fonction de vérification des retards
 import Stripe from "stripe";
@@ -64,6 +65,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/rentals", rentalRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 // ✅ Ajout propre de Stripe Checkout
 app.use("/api/checkout", paymentRoutes); // ✅ Création session + webhook Stripe

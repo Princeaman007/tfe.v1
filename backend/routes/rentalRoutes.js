@@ -1,3 +1,4 @@
+// backend/routes/rentalRoutes.js - Mise à jour
 import express from "express";
 import { 
     borrowBook, 
@@ -5,19 +6,22 @@ import {
     getUserRentals, 
     getAllRentals, 
     getUserRentalsByAdmin,
-    checkOverdueRentals 
+    checkOverdueRentals,
+    getUserRentalsDetailed,
+    returnBookImproved,
+    sendFineNotification
 } from "../controllers/rentalController.js";
 
 import { protect, isSuperAdmin } from "../middleware/authMiddleware.js";
-import { sendFineNotification } from "../controllers/rentalController.js";
-
+import Rental from "../models/rentalModel.js";
 
 const router = express.Router();
 
 // 🔹 Routes protégées pour les utilisateurs connectés
 router.post("/borrow", protect, borrowBook);   // ✅ Emprunter un livre
-router.post("/return", protect, returnBook);   // ✅ Retourner un livre
-router.get("/", protect, getUserRentals);      // ✅ Voir ses propres locations
+router.post("/return", protect, returnBookImproved);   // ✅ Retourner un livre (version améliorée)
+router.get("/", protect, getUserRentals);      // ✅ Voir ses propres locations (simple)
+router.get("/detailed", protect, getUserRentalsDetailed); // ✅ Voir ses locations avec détails
 
 // 🔹 Gestion des locations (Superadmin uniquement)
 router.get("/admin/all", protect, isSuperAdmin, getAllRentals);       // ✅ Voir toutes les locations

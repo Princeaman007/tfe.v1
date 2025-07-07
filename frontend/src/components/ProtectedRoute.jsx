@@ -1,26 +1,48 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { Spinner, Container } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ children, role }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
 
-  // 🔄 Évite le clignotement en attendant la vérification
-  if (isAuthenticated === null) {
-    return <p className="text-center mt-5">🔄 Chargement en cours...</p>;
+  // 🔄 Affichage de chargement pendant la vérification d'authentification
+  if (loading || isAuthenticated === null) {
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+        <div className="text-center">
+          <Spinner animation="border" variant="primary" className="mb-3" />
+          <p className="text-muted">Vérification de l'authentification...</p>
+        </div>
+      </Container>
+    );
   }
 
-  // 🔒 Vérifie si l'utilisateur est connecté
+  // 🔒 Redirection vers login si pas connecté
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // 🔐 Vérifie si l'utilisateur a le bon rôle pour accéder à cette page
-  if (role && user?.role !== role) {
-    return <Navigate to="/dashboard" replace />;
+  // 🔐 Vérification des rôles avec gestion des hiérarchies
+  if (role) {
+    const roleHierarchy = {
+      user: 1,
+      admin: 2,
+      superadmin: 3
+    };
+
+    const userRoleLevel = roleHierarchy[user?.role] || 0;
+    const requiredRoleLevel = roleHierarchy[role] || 999;
+
+    // L'utilisateur doit avoir un niveau de rôle >= au niveau requis
+    if (userRoleLevel < requiredRoleLevel) {
+      console.warn(`Accès refusé: rôle '${user?.role}' insuffisant pour '${role}'`);
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
+  // ✅ Utilisateur autorisé
   return children;
 };
 
