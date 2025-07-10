@@ -7,6 +7,8 @@ import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+import AdminRentals from "./pages/AdminRentals";
+
 
 // 🎨 Styles
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -40,6 +42,7 @@ import Analytics from "./pages/Analytics";
 // 🔥 Pages Super Admin
 import ManageUsers from "./pages/ManageUsers";
 import SecurityLogs from "./pages/SecurityLogs";
+
 
 const App = () => {
   return (
@@ -75,6 +78,8 @@ const App = () => {
             {/* 🔥 Routes Super Admin */}
             <Route path="manage-users" element={<ProtectedRoute role="superAdmin"><ManageUsers /></ProtectedRoute>} />
             <Route path="security-logs" element={<ProtectedRoute role="superAdmin"><SecurityLogs /></ProtectedRoute>} />
+            <Route path="admin-rentals" element={<ProtectedRoute role="superAdmin"><AdminRentals /></ProtectedRoute>} />
+
           </Route>
         </Routes>
 

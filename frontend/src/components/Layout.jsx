@@ -27,40 +27,32 @@ const Layout = () => {
     <div className="container-fluid">
       <div className="row flex-nowrap">
         {/* ✅ Sidebar */}
-        <div className={`col-auto ${collapsed ? "col-md-1" : "col-md-3"} col-xl-2 px-sm-2 px-0 bg-dark text-white min-vh-100 d-flex flex-column`}>
+        <div className={`col-auto ${collapsed ? "col-md-1" : "col-md-3"} col-xl-2 px-sm-2 px-0 bg-dark text-white min-vh-100 d-flex flex-column shadow`}>
+
           
-          {/* Toggler */}
-          <div className="text-end pt-3 pe-3">
-            <button
-              className="btn btn-sm btn-outline-light"
-              onClick={() => setCollapsed(!collapsed)}
-              title={collapsed ? "Déplier" : "Réduire"}
-            >
-              <i className={`fas ${collapsed ? "fa-chevron-right" : "fa-chevron-left"}`}></i>
-            </button>
-          </div>
 
           {/* Header */}
           <div className="text-center mt-3 mb-4">
-            <h4 className="fw-bold d-none d-md-block">📊 Dashboard</h4>
+            <h4 className="fw-bold d-none d-md-block">📚 Bibliothèque</h4>
           </div>
 
+          {/* Menu */}
           <ul className="nav nav-pills flex-column mb-auto px-2">
             <li className="nav-item">
               <NavLink to="/dashboard" className="nav-link text-white">
-                <i className="fas fa-tachometer-alt me-2"></i>
-                {!collapsed && "Bibliothèque"}
+                <i className="fas fa-home me-2"></i>
+                {!collapsed && "Accueil"}
               </NavLink>
             </li>
             <li className="nav-item">
               <NavLink to="/my-rentals" className="nav-link text-white">
-                <i className="fas fa-bookmark me-2"></i>
+                <i className="fas fa-book-reader me-2"></i>
                 {!collapsed && "Mes Locations"}
               </NavLink>
             </li>
             <li className="nav-item">
               <NavLink to="/my-reviews" className="nav-link text-white">
-                <i className="fas fa-comment-alt me-2"></i>
+                <i className="fas fa-star me-2"></i>
                 {!collapsed && "Mes Avis"}
               </NavLink>
             </li>
@@ -73,22 +65,23 @@ const Layout = () => {
 
             {user?.role === "admin" || user?.role === "superAdmin" ? (
               <>
-                <li className="nav-item">
-                  <NavLink to="/add-book" className="nav-link text-white">
-                    <i className="fas fa-plus-circle me-2"></i>
-                    {!collapsed && "Ajouter un Livre"}
-                  </NavLink>
-                </li>
+                <hr className="bg-light" />
                 <li className="nav-item">
                   <NavLink to="/manage-books" className="nav-link text-white">
-                    <i className="fas fa-edit me-2"></i>
-                    {!collapsed && "Gérer les Livres"}
+                    <i className="fas fa-cog me-2"></i>
+                    {!collapsed && "Gérer Livres"}
                   </NavLink>
                 </li>
                 <li className="nav-item">
                   <NavLink to="/analytics" className="nav-link text-white">
-                    <i className="fas fa-chart-bar me-2"></i>
+                    <i className="fas fa-chart-line me-2"></i>
                     {!collapsed && "Statistiques"}
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/admin-rentals" className="nav-link text-white">
+                    <i className="fas fa-clipboard-list me-2"></i>
+                    {!collapsed && "Locations"}
                   </NavLink>
                 </li>
               </>
@@ -96,16 +89,11 @@ const Layout = () => {
 
             {user?.role === "superAdmin" && (
               <>
+                <hr className="bg-light" />
                 <li className="nav-item">
                   <NavLink to="/manage-users" className="nav-link text-white">
                     <i className="fas fa-users me-2"></i>
-                    {!collapsed && "Gérer les Utilisateurs"}
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/security-logs" className="nav-link text-white">
-                    <i className="fas fa-shield-alt me-2"></i>
-                    {!collapsed && "Logs Sécurité"}
+                    {!collapsed && "Utilisateurs"}
                   </NavLink>
                 </li>
               </>
@@ -115,7 +103,7 @@ const Layout = () => {
           {/* ✅ Profil utilisateur */}
           <div className="mt-auto text-center border-top pt-3 pb-3 px-2">
             <div
-              className="d-inline-flex align-items-center justify-content-center rounded-circle border border-light mb-2"
+              className="d-inline-flex align-items-center justify-content-center rounded-circle border border-light mb-2 shadow-sm"
               style={{
                 width: "50px",
                 height: "50px",
@@ -138,7 +126,10 @@ const Layout = () => {
         {/* ✅ Main content */}
         <div className="col py-3 px-4">
           <nav className="navbar navbar-light bg-white shadow-sm rounded mb-4 justify-content-end">
-            <button onClick={logout} className="btn btn-danger btn-sm">Déconnexion</button>
+            <span className="me-3 fw-semibold text-secondary">
+              Bonjour, {user?.name?.split(" ")[0] || "Utilisateur"}
+            </span>
+            <button onClick={logout} className="btn btn-outline-danger btn-sm">Déconnexion</button>
           </nav>
 
           <Outlet />
