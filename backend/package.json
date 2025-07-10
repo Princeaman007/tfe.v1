@@ -23,6 +23,7 @@
     "mongoose": "^8.12.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
+    "react-csv": "^2.2.2",
     "stripe": "^17.7.0"
   },
   "devDependencies": {

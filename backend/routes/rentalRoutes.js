@@ -9,7 +9,8 @@ import {
     checkOverdueRentals,
     getUserRentalsDetailed,
     returnBookImproved,
-    sendFineNotification
+    sendFineNotification,
+    getMonthlyRentals 
 } from "../controllers/rentalController.js";
 
 import { protect, issuperAdmin } from "../middleware/authMiddleware.js";
@@ -26,6 +27,8 @@ router.get("/detailed", protect, getUserRentalsDetailed); // ✅ Voir ses locati
 // 🔹 Gestion des locations (superAdmin uniquement)
 router.get("/admin/all", protect, issuperAdmin, getAllRentals);       // ✅ Voir toutes les locations
 router.get("/admin/user/:userId", protect, issuperAdmin, getUserRentalsByAdmin); // ✅ Voir les locations d'un utilisateur
+router.get("/admin/monthly", protect, issuperAdmin, getMonthlyRentals);
+
 
 // 🔹 Routes de gestion des retards (superAdmin uniquement)
 router.get("/admin/overdue", protect, issuperAdmin, async (req, res) => {

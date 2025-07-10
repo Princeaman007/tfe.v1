@@ -7,10 +7,15 @@ const bookSchema = new mongoose.Schema(
     description: { type: String },
     genre: { type: String, required: true },
     publishedYear: { type: Number },
-    coverImage: { type: String }, 
+    coverImage: { type: String },
     price: { type: Number, required: true },
     availableCopies: { type: Number, required: true, default: 1 },
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Utilisateurs qui aiment ce livre
+
+    // Statistiques ajoutées
+    borrowedCount: { type: Number, default: 0 }, 
+    returnedCount: { type: Number, default: 0 }, 
+
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

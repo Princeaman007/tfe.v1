@@ -1,4 +1,5 @@
 import Book from "../models/bookModel.js";
+import Rental from "../models/rentalModel.js";
 
 // ✅ Ajouter un livre (PROTÉGÉ - Admin uniquement)
 export const addBook = async (req, res) => {
@@ -156,6 +157,57 @@ export const getBooksStock = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
+
+export const getBookStats = async (req, res) => {
+  try {
+    const totalBooks = await Book.countDocuments();
+
+    const [copiesStats] = await Book.aggregate([
+      { $group: { _id: null, totalCopies: { $sum: "$availableCopies" } } }
+    ]);
+
+    const [likesStats] = await Book.aggregate([
+      {
+        $project: {
+          likesCount: { $size: "$likes" },
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalLikes: { $sum: "$likesCount" }
+        }
+      }
+    ]);
+
+    const borrowedCount = await Rental.countDocuments({ status: "borrowed" });
+    const returnedCount = await Rental.countDocuments({ status: "returned" });
+
+    res.status(200).json({
+      totalBooks,
+      availableCopies: copiesStats?.totalCopies || 0,
+      totalLikes: likesStats?.totalLikes || 0,
+      rentedBooks: borrowedCount,
+      returnedBooks: returnedCount,
+    });
+  } catch (error) {
+    console.error("❌ Erreur dans getBookStats:", error);
+    res.status(500).json({ message: "Erreur lors des statistiques", error: error.message });
+  }
+};
+
+
+export const getGenres = async (req, res) => {
+  try {
+    const genres = await Book.distinct("genre");
+    res.status(200).json({ genres });
+  } catch (error) {
+    console.error("❌ Erreur lors de la récupération des genres :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+
 
 export const toggleLikeBook = async (req, res) => {
   try {

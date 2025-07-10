@@ -4,60 +4,36 @@ import Book from "../models/bookModel.js";
 import User from "../models/userModel.js";
 import nodemailer from "nodemailer";
 
-// ✅ Emprunter un livre (ancienne méthode - peut être utilisée sans paiement)
+// ✅ Emprunter un livre (avec dueDate de 30 jours)
 export const borrowBook = async (req, res) => {
   try {
     const { bookId } = req.body;
     const userId = req.user._id;
 
-    // Vérifier que le livre existe et est disponible
     const book = await Book.findById(bookId);
-    if (!book) {
-      return res.status(404).json({ message: "Livre non trouvé." });
-    }
-
-    if (book.availableCopies <= 0) {
+    if (!book) return res.status(404).json({ message: "Livre non trouvé." });
+    if (book.availableCopies <= 0)
       return res.status(400).json({ message: "Ce livre n'est plus disponible." });
-    }
 
-    // Vérifier si l'utilisateur n'a pas déjà emprunté ce livre
-    const existingRental = await Rental.findOne({
-      user: userId,
-      book: bookId,
-      status: "borrowed"
-    });
-
-    if (existingRental) {
+    const existingRental = await Rental.findOne({ user: userId, book: bookId, status: "borrowed" });
+    if (existingRental)
       return res.status(400).json({ message: "Vous avez déjà emprunté ce livre." });
-    }
 
-    // Créer la location
     const borrowedAt = new Date();
     const dueDate = new Date();
-    dueDate.setDate(borrowedAt.getDate() + 30); // 30 jours de location
+    dueDate.setDate(borrowedAt.getDate() + 30);
 
-    const rental = await Rental.create({
-      user: userId,
-      book: bookId,
-      borrowedAt,
-      dueDate,
-      status: "borrowed"
-    });
-
-    // Décrémenter le stock
+    const rental = await Rental.create({ user: userId, book: bookId, borrowedAt, dueDate, status: "borrowed" });
     book.availableCopies -= 1;
     await book.save();
 
-    res.status(201).json({
-      message: "Livre emprunté avec succès.",
-      rental: rental
-    });
-
+    res.status(201).json({ message: "Livre emprunté avec succès.", rental });
   } catch (error) {
     console.error("❌ borrowBook:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
+
 
 // ✅ Retourner un livre (ancienne méthode)
 export const returnBook = async (req, res) => {
@@ -118,35 +94,24 @@ export const getUserRentals = async (req, res) => {
   }
 };
 
-// ✅ Récupérer toutes les locations (Admin)
 export const getAllRentals = async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
-    
-    let query = {};
-    if (status) {
-      query.status = status;
-    }
+    const query = status ? { status } : {};
 
     const rentals = await Rental.find(query)
-      .populate({
-        path: "book",
-        select: "title author genre"
-      })
-      .populate({
-        path: "user",
-        select: "name email"
-      })
+      .populate({ path: "book", select: "title author genre" })
+      .populate({ path: "user", select: "name email" })
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
 
     const total = await Rental.countDocuments(query);
 
     res.status(200).json({
       rentals,
+      currentPage: Number(page),
       totalPages: Math.ceil(total / limit),
-      currentPage: page,
       total
     });
   } catch (error) {
@@ -154,6 +119,38 @@ export const getAllRentals = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
+
+// ✅ Récupérer les locations mensuelles (pour le graphique analytics)
+export const getMonthlyRentals = async (req, res) => {
+  try {
+    const rentals = await Rental.find({}, "borrowedAt"); // Récupère uniquement les dates
+
+    const monthlyCounts = {};
+    rentals.forEach(r => {
+      const date = new Date(r.borrowedAt);
+      const month = date.toLocaleString("fr-FR", { month: "short" }).toLowerCase();
+      monthlyCounts[month] = (monthlyCounts[month] || 0) + 1;
+    });
+
+    // Ordre des mois
+    const months = [
+      "janv.", "févr.", "mars", "avr.", "mai", "juin",
+      "juil.", "août", "sept.", "oct.", "nov.", "déc."
+    ];
+
+    const result = months.map(m => ({
+      mois: m,
+      ventes: monthlyCounts[m] || 0,
+    }));
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("❌ Erreur getMonthlyRentals:", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+
 
 // ✅ Récupérer les locations d'un utilisateur spécifique (Admin)
 export const getUserRentalsByAdmin = async (req, res) => {

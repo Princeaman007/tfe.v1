@@ -169,9 +169,9 @@ export const logout = (req, res) => {
   res.status(200).json({ message: "Déconnexion réussie" });
 };
 
-export const verifyToken = (req, res) => {
+export const verifyToken = async (req, res) => {
   try {
-    console.log("🟢 Cookies reçus :", req.cookies); // ✅ Vérifie si le cookie `token` est reçu
+    console.log("🛡️ Vérification du token - utilisateur détecté :", req.cookies.token);
 
     const token = req.cookies.token;
     if (!token) {
@@ -179,13 +179,22 @@ export const verifyToken = (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    res.status(200).json({ user: decoded });
+
+    // 🔍 Récupération de l'utilisateur complet
+    const user = await User.findById(decoded.id).select("name email role");
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    console.log("✅ Utilisateur vérifié :", user);
+    res.status(200).json({ user }); // ✅ Renvoie l'utilisateur complet
 
   } catch (error) {
     console.error("🔴 Erreur de vérification du token :", error);
     res.status(401).json({ message: "Token invalide ou expiré." });
   }
 };
+
 
 
 
