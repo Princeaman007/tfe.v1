@@ -15,7 +15,7 @@ const Home = () => {
           <i className="fas fa-book-open fa-4x text-primary"></i>
         </div>
         <h1 className="fw-bold text-dark mb-3">
-          Bienvenue à la Bibliothèque 📚
+          Bienvenue à la Bibliothèque 
         </h1>
         <p className="text-secondary fs-5">
           Explorez des milliers de livres, louez vos préférés, et cultivez votre curiosité.

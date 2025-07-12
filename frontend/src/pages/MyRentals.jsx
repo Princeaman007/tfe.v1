@@ -168,7 +168,7 @@ const MyRentals = () => {
     <Container className="py-4">
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h2 className="fw-bold text-primary mb-1">📚 Mes Locations</h2>
+          <h2 className="fw-bold text-primary mb-1">Mes Locations</h2>
           <p className="text-muted mb-0">
             Gérez vos livres loués et vos retours
           </p>

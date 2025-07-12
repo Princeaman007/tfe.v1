@@ -29,11 +29,11 @@ const Layout = () => {
         {/* ✅ Sidebar */}
         <div className={`col-auto ${collapsed ? "col-md-1" : "col-md-3"} col-xl-2 px-sm-2 px-0 bg-dark text-white min-vh-100 d-flex flex-column shadow`}>
 
-          
+
 
           {/* Header */}
           <div className="text-center mt-3 mb-4">
-            <h4 className="fw-bold d-none d-md-block">📚 Bibliothèque</h4>
+            <h4 className="fw-bold d-none d-md-block">Bibliothèque</h4>
           </div>
 
           {/* Menu */}
@@ -133,6 +133,10 @@ const Layout = () => {
           </nav>
 
           <Outlet />
+          {/* ✅ Footer */}
+          <footer className="bg-light text-center text-muted py-3 mt-4 border-top small">
+            © {new Date().getFullYear()} Bibliothèque App — Tous droits réservés.
+          </footer>
         </div>
       </div>
     </div>

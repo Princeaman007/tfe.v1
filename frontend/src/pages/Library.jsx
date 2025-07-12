@@ -12,7 +12,7 @@ const Library = () => {
 
   return (
     <div>
-      <h2>📚 Bibliothèque</h2>
+      <h2>Bibliothèque</h2>
       <ul>
         {books.map((book) => (
           <li key={book.id}>{book.title} - {book.author}</li>

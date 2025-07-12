@@ -57,7 +57,7 @@ const AdminRentals = () => {
   return (
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3 className="fw-bold text-primary">📖 Livres Loués & Retournés</h3>
+        <h3 className="fw-bold text-primary">Livres Loués & Retournés</h3>
         <CSVLink data={csvData} filename={"locations.csv"} className="btn btn-outline-success">
           <i className="fas fa-file-csv me-2"></i>Exporter CSV
         </CSVLink>

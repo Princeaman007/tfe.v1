@@ -23,7 +23,7 @@ const Analytics = () => {
 
   return (
     <div className="container mt-4">
-      <h2 className="text-center mb-4">📊 Analyse des Locations</h2>
+      <h2 className="text-center mb-4">Analyse des Locations</h2>
       <div className="card p-4 shadow">
         <h5 className="text-center">Évolution des locations (12 derniers mois)</h5>
         <ResponsiveContainer width="100%" height={300}>

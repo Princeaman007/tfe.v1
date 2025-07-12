@@ -67,7 +67,7 @@ const Profile = () => {
         </div>
 
         {/* ✅ Formulaire de modification du mot de passe */}
-        <h4 className="mt-4">🔒 Modifier mon mot de passe</h4>
+        <h4 className="mt-4">Modifier mon mot de passe</h4>
         {message && <p className="alert alert-info">{message}</p>}
         
         <form onSubmit={handleChangePassword}>

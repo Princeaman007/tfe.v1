@@ -112,7 +112,7 @@ const ManageBooks = () => {
       <BookStats />
 
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h3 className="fw-bold text-primary mb-0">📚 Gestion des Livres</h3>
+        <h3 className="fw-bold text-primary mb-0">Gestion des Livres</h3>
         <Button onClick={() => setShowCreateModal(true)} variant="primary">
           <i className="fas fa-plus me-2"></i> Ajouter un livre
         </Button>

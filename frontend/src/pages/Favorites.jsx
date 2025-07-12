@@ -115,7 +115,7 @@ const Favorites = () => {
     <Container className="py-4">
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h2 className="fw-bold text-danger mb-1">❤️ Mes Favoris</h2>
+          <h2 className="fw-bold text-danger mb-1">Mes Favoris</h2>
           <p className="text-muted mb-0">
             {favorites.length} livre{favorites.length !== 1 ? 's' : ''} dans vos favoris
           </p>

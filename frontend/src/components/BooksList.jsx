@@ -61,12 +61,12 @@ const BooksList = () => {
 
   const fetchUserFavorites = async () => {
     try {
-      console.log("🔍 Récupération des favoris...");
+      console.log(" Récupération des favoris...");
       const res = await axios.get("http://localhost:5000/api/favorites", {
         withCredentials: true
       });
       
-      console.log("✅ Réponse favoris:", res.data);
+      console.log(" Réponse favoris:", res.data);
       
       // Vérifier que res.data.favorites existe et est un tableau
       if (res.data.favorites && Array.isArray(res.data.favorites)) {
@@ -80,7 +80,7 @@ const BooksList = () => {
         });
         setFavoriteStates(favStates);
         
-        console.log("✅ Favoris IDs:", Array.from(favoriteIds));
+        console.log(" Favoris IDs:", Array.from(favoriteIds));
       } else {
         console.log("⚠️ Aucun favori trouvé ou format incorrect");
         setFavorites(new Set());
@@ -197,7 +197,7 @@ const BooksList = () => {
   return (
     <Container className="mt-4">
       <h2 className="text-center mb-4 fw-bold text-primary">
-        📚 Nos Livres Disponibles à la Location
+         Nos Livres Disponibles à la Location
       </h2>
 
       <Row className="mb-4">
