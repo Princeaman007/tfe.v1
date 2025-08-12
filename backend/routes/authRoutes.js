@@ -7,34 +7,71 @@ import {
   forgotPassword,
   resetPassword,
   logout,
+  verifyToken
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
-import { verifyToken } from "../controllers/authController.js"; 
+
+// ✅ CORRECTION: Chemins d'import fixes
+import { 
+  validateRegisterUser,
+  validateLoginUser,
+  validateResetPassword,
+  validateConfirmResetPassword,
+  validateEmailVerification
+} from '../validators/userValidators.js';
+import { handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
 
 // ✅ Inscription (Enregistrement)
-router.post("/register", register);
+router.post("/register", 
+  validateRegisterUser, 
+  handleValidationErrors, 
+  register
+);
 
 // ✅ Vérification de l'email
-router.get("/verify-email/:token", verifyEmail);
+// AJOUT: Validation du token de vérification
+router.get("/verify-email/:token", 
+  validateEmailVerification,
+  handleValidationErrors,
+  verifyEmail
+);
 
 // ✅ Connexion (Login) - Stocke le JWT dans un cookie sécurisé
-router.post("/login", login);
+router.post("/login", 
+  validateLoginUser, 
+  handleValidationErrors, 
+  login
+);
 
-// ✅ Vérification du Token (Ajoute cette route si elle n'existe pas)
+// ✅ Vérification du Token (middleware de vérification)
 router.get("/verify", verifyToken);
 
 // ✅ Récupérer le profil utilisateur (Protégé)
-router.get("/profile", protect, getProfile);
+router.get("/profile", 
+  protect, 
+  getProfile
+);
 
 // ✅ Mot de passe oublié
-router.post("/forgot-password", forgotPassword);
+// AJOUT: Validation de l'email pour reset
+router.post("/forgot-password", 
+  validateResetPassword,
+  handleValidationErrors,
+  forgotPassword
+);
 
 // ✅ Réinitialisation du mot de passe
-router.post("/reset-password/:token", resetPassword);
+// AJOUT: Validation du token et nouveau mot de passe
+router.post("/reset-password/:token", 
+  validateConfirmResetPassword,
+  handleValidationErrors,
+  resetPassword
+);
 
 // ✅ Déconnexion (Efface le cookie du token)
+// Pas de validation nécessaire pour logout
 router.post("/logout", logout);
 
 export default router;
