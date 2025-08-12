@@ -211,7 +211,7 @@ const ManageUsers = () => {
     <Container fluid className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="fw-bold text-primary mb-1">👥 Gestion des Utilisateurs</h2>
+          <h2 className="fw-bold text-primary mb-1">Gestion des Utilisateurs</h2>
           <p className="text-muted mb-0">Créer, modifier et gérer les utilisateurs</p>
         </div>
         <Button 
