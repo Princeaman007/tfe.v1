@@ -230,18 +230,66 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    const { newPassword } = req.body;
+    // ✅ Lire les mêmes champs que la validation
+    const { newPassword, confirmNewPassword } = req.body;
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('🔄 Tentative de reset password avec token:', token.substring(0, 20) + '...');
+    console.log('🔄 Données reçues:', { 
+      newPassword: newPassword ? '***' : 'undefined',
+      confirmNewPassword: confirmNewPassword ? '***' : 'undefined'
+    });
+
+    // ✅ Vérifier que les champs requis sont présents
+    if (!newPassword || !confirmNewPassword) {
+      return res.status(400).json({ 
+        message: "Tous les champs sont obligatoires." 
+      });
+    }
+
+    // ✅ Vérifier le token JWT
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ Token valide pour user ID:', decoded.id);
+    } catch (jwtError) {
+      console.log('❌ Erreur JWT:', jwtError.message);
+      if (jwtError.name === 'TokenExpiredError') {
+        return res.status(400).json({ 
+          message: "Le lien de réinitialisation a expiré. Demandez un nouveau lien." 
+        });
+      }
+      return res.status(400).json({ 
+        message: "Lien de réinitialisation invalide." 
+      });
+    }
+
+    // ✅ Trouver l'utilisateur
     const user = await User.findById(decoded.id);
+    if (!user) {
+      console.log('❌ Utilisateur non trouvé pour ID:', decoded.id);
+      return res.status(404).json({ 
+        message: "Utilisateur non trouvé." 
+      });
+    }
 
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé." });
+    console.log('✅ Utilisateur trouvé:', user.email);
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    // ✅ Hasher et sauvegarder le nouveau mot de passe
+    user.password = await bcrypt.hash(newPassword, 12);
     await user.save();
 
-    res.status(200).json({ message: "Mot de passe réinitialisé avec succès !" });
+    console.log('✅ Mot de passe réinitialisé pour:', user.email);
+
+    res.status(200).json({ 
+      success: true,
+      message: "Mot de passe réinitialisé avec succès !" 
+    });
+
   } catch (error) {
-    res.status(400).json({ message: "Lien invalide ou expiré." });
+    console.error('❌ Erreur dans resetPassword:', error);
+    res.status(500).json({ 
+      message: "Erreur serveur lors de la réinitialisation.",
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };

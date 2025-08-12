@@ -64,7 +64,7 @@ router.post("/forgot-password",
 
 // ✅ Réinitialisation du mot de passe
 // AJOUT: Validation du token et nouveau mot de passe
-router.post("/reset-password/:token", 
+router.put("/reset-password/:token", 
   validateConfirmResetPassword,
   handleValidationErrors,
   resetPassword
