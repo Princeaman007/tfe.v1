@@ -10,14 +10,16 @@ import { protect } from "../middleware/authMiddleware.js";
 
 // ✅ AJOUT: Import des validateurs
 import {
+
+  
   validateCreateReview,
   validateUpdateReview,
-  validateReviewId,
   validateReviewSearch,
   validateReviewPermission,
   validateReportReview,
   validateReviewStats,
-  validateReviewPagination
+  validateReviewPagination,
+  validateReviewIdParam
 } from '../validators/reviewValidators.js';
 import { handleValidationErrors } from '../middleware/validation.js';
 
@@ -38,10 +40,11 @@ const isAdminOrSuperAdmin = (req, res, next) => {
 // 🔹 Routes principales
 
 // ✅ Ajouter un avis (utilisateur connecté)
-router.post("/", 
+router.post(
+  "/",
   protect,
-  validateCreateReview,
-  handleValidationErrors,
+  validateCreateReview,   // ✅ vérifie le BODY, pas les params
+  handleValidationErrors, // renvoie idéalement 422 en cas d'erreurs
   addReview
 );
 
@@ -55,9 +58,10 @@ router.get("/me",
 );
 
 // ✅ Modifier mon avis
-router.put("/:reviewId", 
+router.put(
+  "/:reviewId",
   protect,
-  validateReviewId,
+  validateReviewIdParam,
   validateUpdateReview,
   handleValidationErrors,
   updateReview
@@ -66,7 +70,7 @@ router.put("/:reviewId",
 // ✅ Supprimer mon avis
 router.delete("/:reviewId", 
   protect,
-  validateReviewId,
+  validateReviewIdParam,
   handleValidationErrors,
   deleteReview
 );
@@ -110,7 +114,7 @@ router.get("/admin/all",
 // ✅ Signaler un avis inapproprié
 router.post("/:reviewId/report", 
   protect,
-  validateReviewId,
+  validateReviewIdParam,
   validateReportReview,
   handleValidationErrors,
   async (req, res) => {
@@ -176,7 +180,7 @@ router.get("/stats/:bookId",
 router.put("/:reviewId/moderate", 
   protect,
   isAdminOrSuperAdmin,
-  validateReviewId,
+  validateReviewIdParam,
   async (req, res) => {
     try {
       const { action, reason } = req.body; // approve, reject, delete

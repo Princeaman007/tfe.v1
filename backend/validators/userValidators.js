@@ -209,27 +209,15 @@ export const validateAdminUpdateUser = [
 
 // Validateur pour le changement de mot de passe
 export const validateChangePassword = [
-  body('currentPassword')
-    .notEmpty()
-    .withMessage('Le mot de passe actuel est obligatoire'),
-
-  body('newPassword')
-    .notEmpty()
-    .withMessage('Le nouveau mot de passe est obligatoire')
-    .isLength({ min: 6, max: 128 })
-    .withMessage('Le nouveau mot de passe doit contenir entre 6 et 128 caractères')
+  body("currentPassword").notEmpty().withMessage("Le mot de passe actuel est obligatoire"),
+  body("newPassword")
+    .notEmpty().withMessage("Le nouveau mot de passe est obligatoire")
+    .isLength({ min: 6, max: 128 }).withMessage("Le nouveau mot de passe doit contenir entre 6 et 128 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
-
-  body('confirmNewPassword')
-    .notEmpty()
-    .withMessage('La confirmation du nouveau mot de passe est obligatoire')
-    .custom((value, { req }) => {
-      if (value !== req.body.newPassword) {
-        throw new Error('Les nouveaux mots de passe ne correspondent pas');
-      }
-      return true;
-    })
+    .withMessage("Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre"),
+  body("confirmNewPassword")
+    .notEmpty().withMessage("La confirmation du nouveau mot de passe est obligatoire")
+    .custom((v, { req }) => v === req.body.newPassword || Promise.reject("Les nouveaux mots de passe ne correspondent pas")),
 ];
 
 // Validateur pour la réinitialisation de mot de passe
@@ -244,29 +232,15 @@ export const validateResetPassword = [
 
 // Validateur pour confirmer la réinitialisation de mot de passe
 export const validateConfirmResetPassword = [
-  body('token')
-    .notEmpty()
-    .withMessage('Le token de réinitialisation est obligatoire')
-    .isLength({ min: 32, max: 128 })
-    .withMessage('Token de réinitialisation invalide'),
-
-  body('newPassword')
-    .notEmpty()
-    .withMessage('Le nouveau mot de passe est obligatoire')
-    .isLength({ min: 6, max: 128 })
-    .withMessage('Le nouveau mot de passe doit contenir entre 6 et 128 caractères')
+  param("token").notEmpty().withMessage("Token manquant"),
+  body("newPassword")
+    .notEmpty().withMessage("Le nouveau mot de passe est obligatoire")
+    .isLength({ min: 6, max: 128 }).withMessage("Le nouveau mot de passe doit contenir entre 6 et 128 caractères")
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
-
-  body('confirmNewPassword')
-    .notEmpty()
-    .withMessage('La confirmation du nouveau mot de passe est obligatoire')
-    .custom((value, { req }) => {
-      if (value !== req.body.newPassword) {
-        throw new Error('Les nouveaux mots de passe ne correspondent pas');
-      }
-      return true;
-    })
+    .withMessage("Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre"),
+  body("confirmNewPassword")
+    .notEmpty().withMessage("La confirmation du nouveau mot de passe est obligatoire")
+    .custom((v, { req }) => v === req.body.newPassword || Promise.reject("Les nouveaux mots de passe ne correspondent pas")),
 ];
 
 // Validateur pour ajouter/retirer des favoris

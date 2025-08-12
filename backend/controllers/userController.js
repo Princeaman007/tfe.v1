@@ -336,23 +336,46 @@ export const updateProfile = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   try {
-    const { oldPassword, newPassword } = req.body;
+    // ✅ Utiliser les mêmes noms que la validation
+    const { currentPassword, newPassword } = req.body;
+    
+    console.log('Changement de mot de passe pour user:', req.user.id);
+    console.log('Données reçues:', { 
+      currentPassword: currentPassword ? '***' : 'undefined', 
+      newPassword: newPassword ? '***' : 'undefined' 
+    });
+    
     const user = await User.findById(req.user.id);
 
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé." });
     }
 
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    // ✅ Vérifier que currentPassword n'est pas undefined
+    if (!currentPassword) {
+      return res.status(400).json({ message: "Mot de passe actuel requis." });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Ancien mot de passe incorrect." });
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    // ✅ Hasher le nouveau mot de passe
+    user.password = await bcrypt.hash(newPassword, 12); // 12 rounds recommandés
     await user.save();
 
-    res.status(200).json({ message: "Mot de passe mis à jour avec succès !" });
+    console.log('Mot de passe mis à jour avec succès pour user:', req.user.id);
+
+    res.status(200).json({ 
+      success: true,
+      message: "Mot de passe mis à jour avec succès !" 
+    });
   } catch (error) {
-    res.status(500).json({ message: "Erreur interne du serveur." });
+    console.error('Erreur changePassword:', error);
+    res.status(500).json({ 
+      message: "Erreur interne du serveur.",
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };

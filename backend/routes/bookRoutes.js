@@ -16,7 +16,7 @@ import { handleValidationErrors } from '../middleware/validation.js';
 import { 
   validateCreateBook, 
   validateUpdateBook, 
-  validateBookId,
+  validateBookIdParam,
   validateBookSearch 
 } from '../validators/bookValidators.js';
 
@@ -54,7 +54,7 @@ router.get("/stock",
 
 // ✅ Détail d'un livre
 router.get("/:id", 
-  validateBookId,  // Validation de l'ID MongoDB
+  validateBookIdParam,  
   handleValidationErrors,
   getBookById
 );
@@ -74,7 +74,7 @@ router.post("/",
 router.put("/:id", 
   protect, 
   isAdmin,
-  validateBookId,      // Valider l'ID en paramètre
+  validateBookIdParam,      // Valider l'ID en paramètre
   validateUpdateBook,  // ❌ AVANT: validateCreateBook + validateUpdateBook
   handleValidationErrors, 
   updateBook
@@ -84,7 +84,7 @@ router.put("/:id",
 router.delete("/:id", 
   protect, 
   isAdmin,
-  validateBookId,  // Validation de l'ID
+  validateBookIdParam,  // Valider l'ID en paramètre
   handleValidationErrors,
   deleteBook
 );
@@ -92,7 +92,7 @@ router.delete("/:id",
 // ✅ Like / Unlike d'un livre (user connecté)
 router.post("/:id/like", 
   protect,
-  validateBookId,  // Validation de l'ID du livre
+  validateBookIdParam,  // Valider l'ID en paramètre
   handleValidationErrors,
   toggleLikeBook
 );

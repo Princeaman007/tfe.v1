@@ -1,189 +1,120 @@
-import { body, param } from 'express-validator';
+// validators/reviewValidator.js
+import { param, body, query, oneOf } from "express-validator";
 
-// Validateur pour la création d'un avis
+// ——— Helpers ———
+const idParam = (name, label) => [
+  param(name)
+    .customSanitizer(v => String(v ?? "").trim())
+    .notEmpty().withMessage(`${label} est obligatoire`).bail()
+    .isMongoId().withMessage(`${label} doit être un ObjectId MongoDB valide`),
+];
+
+// ——— Create ———
 export const validateCreateReview = [
-  body('user')
-    .notEmpty()
-    .withMessage('L\'utilisateur est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID de l\'utilisateur doit être un ObjectId MongoDB valide'),
+  body("bookId")
+    .customSanitizer(v => String(v ?? "").trim())
+    .notEmpty().withMessage("bookId est requis").bail()
+    .isMongoId().withMessage("bookId doit être un ObjectId MongoDB valide"),
 
-  body('book')
-    .notEmpty()
-    .withMessage('Le livre est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID du livre doit être un ObjectId MongoDB valide'),
+  body("rating")
+    .notEmpty().withMessage("rating est requis").bail()
+    .isInt({ min: 1, max: 5 }).withMessage("rating doit être entre 1 et 5")
+    .toInt(),
 
-  body('rating')
-    .notEmpty()
-    .withMessage('La note est obligatoire')
-    .isInt({ min: 1, max: 5 })
-    .withMessage('La note doit être un entier entre 1 et 5'),
-
-  body('comment')
-    .notEmpty()
-    .withMessage('Le commentaire est obligatoire')
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Le commentaire doit contenir entre 10 et 1000 caractères')
+  body("comment")
+    .isString().withMessage("comment doit être une chaîne")
     .trim()
-    .escape() // Protection contre XSS
+    .isLength({ min: 10, max: 1000 }).withMessage("comment doit faire entre 10 et 1000 caractères"),
 ];
 
-// Validateur pour la mise à jour d'un avis
+// ——— Update ———
+export const validateReviewIdParam = idParam("reviewId", "ID d'avis");
+
 export const validateUpdateReview = [
-  body('rating')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('La note doit être un entier entre 1 et 5'),
+  oneOf(
+    [ body("rating").exists(), body("comment").exists() ],
+    "Fournissez au moins 'rating' ou 'comment'"
+  ),
 
-  body('comment')
+  body("rating")
     .optional()
-    .isLength({ min: 10, max: 1000 })
-    .withMessage('Le commentaire doit contenir entre 10 et 1000 caractères')
+    .isInt({ min: 1, max: 5 }).withMessage("La note doit être un entier entre 1 et 5")
+    .toInt(),
+
+  body("comment")
+    .optional({ checkFalsy: true })
+    .isString().withMessage("Le commentaire doit être une chaîne")
     .trim()
-    .escape(), // Protection contre XSS
+    .isLength({ min: 10, max: 1000 }).withMessage("Le commentaire doit contenir entre 10 et 1000 caractères"),
 
-  // Les références ne peuvent pas être modifiées
-  body('user')
-    .not().exists()
-    .withMessage('L\'utilisateur ne peut pas être modifié'),
-
-  body('book')
-    .not().exists()
-    .withMessage('Le livre ne peut pas être modifié')
+  // champs non modifiables
+  body("user").not().exists().withMessage("L'utilisateur ne peut pas être modifié"),
+  body("userId").not().exists().withMessage("userId ne peut pas être modifié"),
+  body("book").not().exists().withMessage("Le livre ne peut pas être modifié"),
+  body("bookId").not().exists().withMessage("bookId ne peut pas être modifié"),
 ];
 
-// Validateur pour les paramètres d'URL (ID d'avis)
-export const validateReviewId = [
-  param('id')
-    .notEmpty()
-    .withMessage('L\'ID de l\'avis est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID de l\'avis doit être un ObjectId MongoDB valide')
-];
+// ——— Stats par livre (param) ———
+export const validateReviewStats = idParam("bookId", "L'ID du livre");
 
-// Validateur pour la recherche/filtrage des avis
+// ——— Recherche/filtrage (GET /reviews?...) ———
 export const validateReviewSearch = [
-  body('user')
-    .optional()
-    .isMongoId()
-    .withMessage('L\'ID de l\'utilisateur doit être un ObjectId MongoDB valide'),
+  query("user").optional().isMongoId().withMessage("user doit être un ObjectId MongoDB valide"),
+  query("book").optional().isMongoId().withMessage("book doit être un ObjectId MongoDB valide"),
 
-  body('book')
+  query("rating").optional().isInt({ min: 1, max: 5 }).withMessage("rating doit être entre 1 et 5").toInt(),
+  query("minRating").optional().isInt({ min: 1, max: 5 }).withMessage("minRating doit être entre 1 et 5").toInt(),
+  query("maxRating")
     .optional()
-    .isMongoId()
-    .withMessage('L\'ID du livre doit être un ObjectId MongoDB valide'),
-
-  body('rating')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('La note doit être un entier entre 1 et 5'),
-
-  body('minRating')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('La note minimum doit être un entier entre 1 et 5'),
-
-  body('maxRating')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('La note maximum doit être un entier entre 1 et 5')
+    .isInt({ min: 1, max: 5 }).withMessage("maxRating doit être entre 1 et 5")
+    .toInt()
     .custom((value, { req }) => {
-      if (req.body.minRating && parseInt(value) < parseInt(req.body.minRating)) {
-        throw new Error('La note maximum doit être supérieure ou égale à la note minimum');
+      if (req.query.minRating && Number(value) < Number(req.query.minRating)) {
+        throw new Error("maxRating doit être ≥ minRating");
       }
       return true;
     }),
 
-  body('startDate')
+  query("startDate").optional().isISO8601().withMessage("startDate doit être ISO8601").toDate(),
+  query("endDate")
     .optional()
-    .isISO8601()
-    .withMessage('La date de début doit être au format ISO8601 valide'),
-
-  body('endDate')
-    .optional()
-    .isISO8601()
-    .withMessage('La date de fin doit être au format ISO8601 valide')
+    .isISO8601().withMessage("endDate doit être ISO8601")
+    .toDate()
     .custom((value, { req }) => {
-      if (req.body.startDate && new Date(value) <= new Date(req.body.startDate)) {
-        throw new Error('La date de fin doit être postérieure à la date de début');
+      if (req.query.startDate && new Date(value) <= new Date(req.query.startDate)) {
+        throw new Error("endDate doit être postérieure à startDate");
       }
       return true;
-    })
+    }),
 ];
 
-// Validateur pour vérifier qu'un utilisateur peut laisser un avis
-export const validateReviewPermission = [
-  body('user')
-    .notEmpty()
-    .withMessage('L\'utilisateur est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID de l\'utilisateur doit être un ObjectId MongoDB valide'),
-
-  body('book')
-    .notEmpty()
-    .withMessage('Le livre est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID du livre doit être un ObjectId MongoDB valide')
-];
-
-// Validateur pour la modération des avis (admin)
-export const validateModerateReview = [
-  body('status')
-    .optional()
-    .isIn(['approved', 'rejected', 'pending'])
-    .withMessage('Le statut doit être "approved", "rejected" ou "pending"'),
-
-  body('moderationNote')
-    .optional()
-    .isLength({ max: 500 })
-    .withMessage('La note de modération ne peut pas dépasser 500 caractères')
-    .trim()
-];
-
-// Validateur pour signaler un avis inapproprié
-export const validateReportReview = [
-  body('reason')
-    .notEmpty()
-    .withMessage('La raison du signalement est obligatoire')
-    .isIn(['spam', 'inappropriate', 'offensive', 'fake', 'other'])
-    .withMessage('La raison doit être: spam, inappropriate, offensive, fake ou other'),
-
-  body('description')
-    .optional()
-    .isLength({ max: 500 })
-    .withMessage('La description ne peut pas dépasser 500 caractères')
-    .trim()
-];
-
-// Validateur pour les statistiques d'avis par livre
-export const validateReviewStats = [
-  param('bookId')
-    .notEmpty()
-    .withMessage('L\'ID du livre est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID du livre doit être un ObjectId MongoDB valide')
-];
-
-// Validateur pour la pagination des avis
+// ——— Pagination (GET) ———
 export const validateReviewPagination = [
-  body('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('Le numéro de page doit être un entier positif'),
+  query("page").optional().isInt({ min: 1 }).withMessage("page doit être ≥ 1").toInt(),
+  query("limit").optional().isInt({ min: 1, max: 100 }).withMessage("limit doit être 1..100").toInt(),
+  query("sortBy").optional().isIn(["rating", "createdAt", "helpful"]).withMessage("sortBy invalide"),
+  query("sortOrder").optional().isIn(["asc", "desc"]).withMessage("sortOrder doit être 'asc' ou 'desc'"),
+];
 
-  body('limit')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('La limite doit être un entier entre 1 et 100'),
+// ——— Modération (admin) ———
+export const validateModerateReview = [
+  body("status").optional().isIn(["approved", "rejected", "pending"]).withMessage('status doit être "approved", "rejected" ou "pending"'),
+  body("moderationNote").optional().isLength({ max: 500 }).withMessage("moderationNote ≤ 500").trim(),
+];
 
-  body('sortBy')
-    .optional()
-    .isIn(['rating', 'createdAt', 'helpful'])
-    .withMessage('Le tri doit être par: rating, createdAt ou helpful'),
+// ——— Signalement ———
+export const validateReportReview = [
+  body("reason")
+    .notEmpty().withMessage("reason est obligatoire").bail()
+    .isIn(["spam", "inappropriate", "offensive", "fake", "other"])
+    .withMessage('reason doit être: spam, inappropriate, offensive, fake ou other'),
+  body("description").optional().isLength({ max: 500 }).withMessage("description ≤ 500").trim(),
+];
 
-  body('sortOrder')
-    .optional()
-    .isIn(['asc', 'desc'])
-    .withMessage('L\'ordre de tri doit être "asc" ou "desc"')
+// ——— Permission (évite user dans le body) ———
+export const validateReviewPermission = [
+  body("book")
+    .notEmpty().withMessage("book est obligatoire").bail()
+    .isMongoId().withMessage("book doit être un ObjectId MongoDB valide"),
+  // l'utilisateur provient de req.user (protect), pas du body
 ];

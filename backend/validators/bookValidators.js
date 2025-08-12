@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 // Validateur pour la création d'un livre
 export const validateCreateBook = [
@@ -126,12 +126,11 @@ export const validateUpdateBook = [
 ];
 
 // Validateur pour les actions spécifiques (comme aimer un livre)
-export const validateBookId = [
-  body('bookId')
-    .notEmpty()
-    .withMessage('L\'ID du livre est obligatoire')
-    .isMongoId()
-    .withMessage('L\'ID du livre doit être un ObjectId MongoDB valide')
+export const validateBookIdParam = [
+ param("id")
+    .notEmpty().withMessage("L'ID du livre est requis")
+    .customSanitizer(v => String(v ?? "").trim())
+    .isMongoId().withMessage("ID invalide"),
 ];
 
 // Validateur pour la recherche/filtrage
