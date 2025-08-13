@@ -27,7 +27,8 @@ import {
   validateUserId,
   validateUserSearch,
   validateUserPagination,
-  validateManageFavorites
+  validateManageFavorites,
+  validateAdminCreateUser,
 } from '../validators/userValidators.js';
 import { handleValidationErrors } from '../middleware/validation.js';
 
@@ -52,6 +53,8 @@ router.put("/change-password",
   handleValidationErrors,
   changePassword
 );
+
+
 
 // ✅ BONUS: Gérer ses favoris
 router.post("/favorites", 
@@ -139,7 +142,7 @@ router.get("/:id",
 router.post("/", 
   protect, 
   isSuperAdmin,
-  validateRegisterUser, // Réutilise la validation d'inscription
+  validateAdminCreateUser,     // ✅ Gardez uniquement celui-ci
   handleValidationErrors,
   createUser
 );

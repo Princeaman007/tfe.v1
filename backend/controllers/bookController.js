@@ -59,17 +59,66 @@ export const updateBook = async (req, res) => {
 // ✅ Supprimer un livre (PROTÉGÉ - Admin uniquement)
 export const deleteBook = async (req, res) => {
   try {
+    console.log("🗑️ === DÉBUT SUPPRESSION ===");
+    console.log("📝 Params reçus:", req.params);
+    console.log("📝 User:", req.user ? `${req.user.name} (${req.user.role})` : "AUCUN USER");
+    
     const { id } = req.params;
+    console.log("📝 ID à supprimer:", id);
+
+    // Vérifier que l'ID est valide
+    if (!id) {
+      console.log("❌ ID manquant");
+      return res.status(400).json({ message: "ID du livre manquant" });
+    }
+
+    console.log("🔍 Recherche du livre...");
     const book = await Book.findById(id);
+    console.log("📖 Livre trouvé:", book ? `"${book.title}" par ${book.author}` : "AUCUN");
 
     if (!book) {
+      console.log("❌ Livre non trouvé");
       return res.status(404).json({ message: "Livre non trouvé" });
     }
 
-    await book.deleteOne();
-    res.status(200).json({ message: "Livre supprimé avec succès" });
+    console.log("🗑️ Suppression en cours...");
+    const result = await book.deleteOne();
+    console.log("✅ Résultat suppression:", result);
+
+    console.log("🎉 Suppression réussie !");
+    res.status(200).json({ 
+      success: true,
+      message: "Livre supprimé avec succès",
+      deletedBook: {
+        id: book._id,
+        title: book.title
+      }
+    });
+
+    console.log("🗑️ === FIN SUPPRESSION (SUCCÈS) ===");
+
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    console.log("🗑️ === FIN SUPPRESSION (ERREUR) ===");
+    console.error("❌ Erreur complète:", {
+      message: error.message,
+      name: error.name,
+      stack: error.stack
+    });
+
+    // Gestion spécifique des erreurs
+    if (error.name === 'CastError') {
+      console.log("❌ CastError - ID MongoDB invalide");
+      return res.status(400).json({ 
+        success: false,
+        message: "Format d'ID invalide" 
+      });
+    }
+
+    res.status(500).json({ 
+      success: false,
+      message: "Erreur serveur", 
+      error: error.message 
+    });
   }
 };
 

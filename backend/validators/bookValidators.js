@@ -48,21 +48,24 @@ export const validateCreateBook = [
   body('availableCopies')
     .optional()
     .isInt({ min: 0 })
-    .withMessage('Le nombre de copies disponibles doit être un entier positif ou nul')
-    .default(1),
+    .withMessage('Le nombre de copies disponibles doit être un entier positif ou nul'),
 
-  // Les champs statistiques ne doivent pas être modifiables à la création
+  // ✅ CORRECTION: Permettre que ces champs soient absents ou vides à la création
+  // Ils seront initialisés par défaut dans le contrôleur
   body('borrowedCount')
-    .not().exists()
-    .withMessage('Le nombre d\'emprunts ne peut pas être défini manuellement'),
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Le nombre d\'emprunts doit être un entier positif'),
 
   body('returnedCount')
-    .not().exists()
-    .withMessage('Le nombre de retours ne peut pas être défini manuellement'),
+    .optional()  
+    .isInt({ min: 0 })
+    .withMessage('Le nombre de retours doit être un entier positif'),
 
   body('likes')
-    .not().exists()
-    .withMessage('Les likes ne peuvent pas être définis manuellement')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Les likes doivent être un entier positif')
 ];
 
 // Validateur pour la mise à jour d'un livre
@@ -111,7 +114,7 @@ export const validateUpdateBook = [
     .isInt({ min: 0 })
     .withMessage('Le nombre de copies disponibles doit être un entier positif ou nul'),
 
-  // Les champs statistiques ne doivent pas être modifiables
+  // ✅ Pour la mise à jour, interdire la modification des stats
   body('borrowedCount')
     .not().exists()
     .withMessage('Le nombre d\'emprunts ne peut pas être modifié manuellement'),
@@ -125,12 +128,14 @@ export const validateUpdateBook = [
     .withMessage('Les likes ne peuvent pas être modifiés manuellement')
 ];
 
-// Validateur pour les actions spécifiques (comme aimer un livre)
+// Validateur pour les paramètres d'ID
 export const validateBookIdParam = [
- param("id")
-    .notEmpty().withMessage("L'ID du livre est requis")
+  param("id")
+    .notEmpty()
+    .withMessage("L'ID du livre est requis")
     .customSanitizer(v => String(v ?? "").trim())
-    .isMongoId().withMessage("ID invalide"),
+    .isMongoId()
+    .withMessage("ID invalide"),
 ];
 
 // Validateur pour la recherche/filtrage

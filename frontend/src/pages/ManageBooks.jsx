@@ -1,4 +1,4 @@
-// src/pages/ManageBooks.jsx
+// src/pages/ManageBooks.jsx - Version avec debug
 import React, { useState, useEffect } from "react";
 import { Container, Button, Spinner, Pagination } from "react-bootstrap";
 import axios from "axios";
@@ -50,6 +50,7 @@ const ManageBooks = () => {
       setBooks(response.data.books);
       setTotalPages(response.data.totalPages);
     } catch (err) {
+      console.error("❌ Erreur fetchBooks:", err);
       toast.error("Erreur lors du chargement des livres");
     } finally {
       setLoading(false);
@@ -63,6 +64,7 @@ const ManageBooks = () => {
       });
       setGenres(res.data.genres || []);
     } catch (err) {
+      console.error("❌ Erreur fetchGenres:", err);
       toast.error("Erreur lors du chargement des genres");
       setGenres([]);
     }
@@ -70,40 +72,85 @@ const ManageBooks = () => {
 
   const handleCreate = async (data) => {
     try {
-      await axios.post("http://localhost:5000/api/books", data, {
+      console.log("🔧 Création livre avec data:", data);
+
+      const response = await axios.post("http://localhost:5000/api/books", data, {
         withCredentials: true,
       });
+
+      console.log("✅ Livre créé:", response.data);
       toast.success("Livre ajouté avec succès !");
       setShowCreateModal(false);
       fetchBooks();
     } catch (err) {
+      console.error("❌ Erreur création:", err.response?.data || err.message);
       toast.error(err.response?.data?.message || "Erreur lors de l'ajout");
     }
   };
 
   const handleUpdate = async (data) => {
     try {
-      await axios.put(`http://localhost:5000/api/books/${editBook._id}`, data, {
+      console.log("🔧 Modification livre ID:", editBook._id, "avec data:", data);
+
+      const response = await axios.put(`http://localhost:5000/api/books/${editBook._id}`, data, {
         withCredentials: true,
       });
+
+      console.log("✅ Livre modifié:", response.data);
       toast.success("Livre modifié avec succès !");
       setEditBook(null);
       fetchBooks();
     } catch (err) {
+      console.error("❌ Erreur modification:", err.response?.data || err.message);
       toast.error(err.response?.data?.message || "Erreur lors de la modification");
     }
   };
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/books/${deleteBook._id}`, {
-        withCredentials: true,
+      console.log("🗑️ Tentative suppression livre:", {
+        id: deleteBook._id,
+        title: deleteBook.title,
+        url: `http://localhost:5000/api/books/${deleteBook._id}`
       });
+
+      // Vérifier que l'ID est valide
+      if (!deleteBook._id) {
+        throw new Error("ID du livre manquant");
+      }
+
+      const response = await axios.delete(`http://localhost:5000/api/books/${deleteBook._id}`, {
+        withCredentials: true,
+        timeout: 10000, // 10 secondes de timeout
+      });
+
+      console.log("✅ Réponse suppression:", response.data);
+      console.log("✅ Status code:", response.status);
+
       toast.success("Livre supprimé avec succès !");
       setDeleteBook(null);
       fetchBooks();
+
     } catch (err) {
-      toast.error("Erreur lors de la suppression du livre");
+      console.error("❌ Erreur suppression complète:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        config: err.config
+      });
+
+      // Messages d'erreur plus spécifiques
+      if (err.response?.status === 404) {
+        toast.error("Livre non trouvé");
+      } else if (err.response?.status === 403) {
+        toast.error("Permissions insuffisantes pour supprimer ce livre");
+      } else if (err.response?.status === 401) {
+        toast.error("Session expirée, veuillez vous reconnecter");
+      } else if (err.code === 'ECONNABORTED') {
+        toast.error("Timeout - Vérifiez votre connexion");
+      } else {
+        toast.error(err.response?.data?.message || "Erreur lors de la suppression du livre");
+      }
     }
   };
 
@@ -187,8 +234,8 @@ const ManageBooks = () => {
       <BookDeleteModal
         show={!!deleteBook}
         onHide={() => setDeleteBook(null)}
-        onConfirm={handleDelete}
-        bookTitle={deleteBook?.title}
+        onDelete={handleDelete}    
+        book={deleteBook}          
       />
     </Container>
   );

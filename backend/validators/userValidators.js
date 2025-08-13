@@ -207,6 +207,74 @@ export const validateAdminUpdateUser = [
     .withMessage('La réinitialisation des tentatives doit être un booléen')
 ];
 
+// Dans votre fichier de validation
+// Validation spécifique pour création par admin
+export const validateAdminCreateUser = [
+  body('name')
+    .notEmpty()
+    .withMessage('Le nom est obligatoire')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Le nom doit contenir entre 2 et 50 caractères')
+    .trim()
+    .matches(/^[a-zA-ZÀ-ÿ\s\-']+$/)
+    .withMessage('Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes'),
+
+  body('email')
+    .notEmpty()
+    .withMessage('L\'email est obligatoire')
+    .isEmail()
+    .withMessage('Format d\'email invalide')
+    .normalizeEmail(),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Le mot de passe est obligatoire')
+    .isLength({ min: 6, max: 128 })
+    .withMessage('Le mot de passe doit contenir entre 6 et 128 caractères')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
+
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('La confirmation du mot de passe est obligatoire')
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error('Les mots de passe ne correspondent pas');
+      }
+      return true;
+    }),
+
+  // ✅ AUTORISER ces champs pour les admins
+  body('role')
+    .optional()
+    .isIn(['user', 'admin', 'superAdmin'])
+    .withMessage('Le rôle doit être user, admin ou superAdmin'),
+
+  body('isVerified')
+    .optional()
+    .isBoolean()
+    .withMessage('Le statut de vérification doit être un booléen')
+];
+
+export const validateAdminResetPassword = [
+  param('id').isMongoId().withMessage('ID utilisateur invalide'),
+  body('newPassword')
+    .notEmpty()
+    .withMessage('Le nouveau mot de passe est obligatoire')
+    .isLength({ min: 6, max: 128 })
+    .withMessage('Le nouveau mot de passe doit contenir entre 6 et 128 caractères')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Le nouveau mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre'),
+  body('confirmNewPassword')
+    .notEmpty()
+    .withMessage('La confirmation du nouveau mot de passe est obligatoire')
+    .custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error('Les nouveaux mots de passe ne correspondent pas');
+      }
+      return true;
+    })
+];
 // Validateur pour le changement de mot de passe
 export const validateChangePassword = [
   body("currentPassword").notEmpty().withMessage("Le mot de passe actuel est obligatoire"),

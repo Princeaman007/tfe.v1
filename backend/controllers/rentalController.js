@@ -5,32 +5,138 @@ import User from "../models/userModel.js";
 import nodemailer from "nodemailer";
 
 // ✅ Emprunter un livre (avec dueDate de 30 jours)
+// ✅ Emprunter un livre (VERSION DEBUG COMPLÈTE)
 export const borrowBook = async (req, res) => {
   try {
+    console.log("📚 === DÉBUT EMPRUNT LIVRE ===");
+    console.log("📝 req.body:", req.body);
+    console.log("📝 req.user:", req.user ? { id: req.user._id, name: req.user.name } : "PAS D'USER");
+    
     const { bookId } = req.body;
     const userId = req.user._id;
 
+    console.log("🔍 Recherche du livre avec ID:", bookId);
+
+    // 1. Vérifier que le livre existe
     const book = await Book.findById(bookId);
-    if (!book) return res.status(404).json({ message: "Livre non trouvé." });
-    if (book.availableCopies <= 0)
+    console.log("📖 Livre trouvé:", book ? {
+      id: book._id,
+      title: book.title,
+      availableCopies: book.availableCopies,
+      borrowedCount: book.borrowedCount
+    } : "AUCUN LIVRE TROUVÉ");
+
+    if (!book) {
+      console.log("❌ Livre non trouvé avec ID:", bookId);
+      return res.status(404).json({ message: "Livre non trouvé." });
+    }
+
+    // 2. Vérifier la disponibilité
+    console.log("📊 Stock actuel:", book.availableCopies);
+    if (book.availableCopies <= 0) {
+      console.log("❌ Stock épuisé");
       return res.status(400).json({ message: "Ce livre n'est plus disponible." });
+    }
 
-    const existingRental = await Rental.findOne({ user: userId, book: bookId, status: "borrowed" });
-    if (existingRental)
+    // 3. Vérifier si l'utilisateur a déjà emprunté ce livre
+    console.log("🔍 Vérification location existante...");
+    const existingRental = await Rental.findOne({ 
+      user: userId, 
+      book: bookId, 
+      status: "borrowed" 
+    });
+    
+    console.log("📋 Location existante:", existingRental ? "TROUVÉE" : "AUCUNE");
+    
+    if (existingRental) {
+      console.log("❌ Livre déjà emprunté par cet utilisateur");
       return res.status(400).json({ message: "Vous avez déjà emprunté ce livre." });
+    }
 
+    // 4. Créer la location
+    console.log("📝 Création de la location...");
     const borrowedAt = new Date();
     const dueDate = new Date();
     dueDate.setDate(borrowedAt.getDate() + 30);
 
-    const rental = await Rental.create({ user: userId, book: bookId, borrowedAt, dueDate, status: "borrowed" });
-    book.availableCopies -= 1;
-    await book.save();
+    const rental = await Rental.create({ 
+      user: userId, 
+      book: bookId, 
+      borrowedAt, 
+      dueDate, 
+      status: "borrowed" 
+    });
 
-    res.status(201).json({ message: "Livre emprunté avec succès.", rental });
+    console.log("✅ Location créée avec succès:", {
+      id: rental._id,
+      user: rental.user,
+      book: rental.book,
+      status: rental.status
+    });
+
+    // 5. ✅ MISE À JOUR DU STOCK (PARTIE CRITIQUE)
+    console.log("📊 === DÉBUT MISE À JOUR STOCK ===");
+    console.log("📊 Avant modification:", {
+      availableCopies: book.availableCopies,
+      borrowedCount: book.borrowedCount
+    });
+
+    // Modification des valeurs
+    book.availableCopies = book.availableCopies - 1;
+    book.borrowedCount = (book.borrowedCount || 0) + 1;
+
+    console.log("📊 Après modification (avant save):", {
+      availableCopies: book.availableCopies,
+      borrowedCount: book.borrowedCount
+    });
+
+    // Sauvegarder le livre
+    console.log("💾 Sauvegarde du livre...");
+    const savedBook = await book.save();
+    
+    console.log("✅ Livre sauvegardé:", {
+      id: savedBook._id,
+      title: savedBook.title,
+      availableCopies: savedBook.availableCopies,
+      borrowedCount: savedBook.borrowedCount
+    });
+
+    // 6. Vérification post-sauvegarde
+    console.log("🔍 Vérification en base de données...");
+    const bookFromDB = await Book.findById(bookId);
+    console.log("📊 Livre depuis la DB:", {
+      availableCopies: bookFromDB.availableCopies,
+      borrowedCount: bookFromDB.borrowedCount
+    });
+
+    console.log("📊 === FIN MISE À JOUR STOCK ===");
+
+    // 7. Réponse
+    res.status(201).json({ 
+      success: true,
+      message: "Livre emprunté avec succès.", 
+      rental,
+      bookStock: {
+        availableCopies: savedBook.availableCopies,
+        borrowedCount: savedBook.borrowedCount,
+        title: savedBook.title
+      }
+    });
+
+    console.log("🎉 Emprunt réussi !");
+    console.log("📚 === FIN EMPRUNT LIVRE (SUCCÈS) ===");
+
   } catch (error) {
-    console.error("❌ borrowBook:", error);
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    console.error("❌ === ERREUR COMPLÈTE ===");
+    console.error("❌ Message:", error.message);
+    console.error("❌ Stack:", error.stack);
+    console.error("❌ Name:", error.name);
+    
+    res.status(500).json({ 
+      message: "Erreur serveur", 
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -38,37 +144,81 @@ export const borrowBook = async (req, res) => {
 // ✅ Retourner un livre (ancienne méthode)
 export const returnBook = async (req, res) => {
   try {
+    console.log("📚 === DÉBUT RETOUR LIVRE ===");
+    
     const { rentalId } = req.body;
     const userId = req.user._id;
 
+    console.log("📝 Données retour:", { rentalId, userId });
+
     const rental = await Rental.findById(rentalId).populate("book");
     if (!rental) {
+      console.log("❌ Location non trouvée:", rentalId);
       return res.status(404).json({ message: "Location non trouvée." });
     }
 
     if (rental.user.toString() !== userId.toString()) {
+      console.log("❌ Utilisateur non autorisé");
       return res.status(403).json({ message: "Non autorisé à retourner ce livre." });
     }
 
     if (rental.status === "returned") {
+      console.log("❌ Livre déjà retourné");
       return res.status(400).json({ message: "Ce livre a déjà été retourné." });
     }
 
+    console.log("📖 Retour du livre:", rental.book.title);
+
+    // 1. Mettre à jour la location
     rental.status = "returned";
     rental.returnedAt = new Date();
     await rental.save();
 
-    // Remettre le livre en stock
+    console.log("✅ Location mise à jour");
+
+    // 2. ✅ REMETTRE LE LIVRE EN STOCK ET INCRÉMENTER returnedCount
     const book = await Book.findById(rental.book._id);
     if (book) {
+      // Méthode 1: Avec save() (votre méthode actuelle améliorée)
       book.availableCopies += 1;
+      book.returnedCount = (book.returnedCount || 0) + 1;  // ✅ AJOUT IMPORTANT
       await book.save();
+
+      /* 
+      // Méthode 2: Avec findByIdAndUpdate (plus atomique)
+      const updatedBook = await Book.findByIdAndUpdate(
+        rental.book._id,
+        {
+          $inc: {
+            availableCopies: 1,
+            returnedCount: 1
+          }
+        },
+        { new: true }
+      );
+      */
+
+      console.log("📊 Stock restauré:", {
+        title: book.title,
+        availableCopies: book.availableCopies,
+        returnedCount: book.returnedCount,
+        stockChange: "Stock incrémenté et returnedCount incrémenté"
+      });
     }
 
     res.status(200).json({
+      success: true,
       message: "Livre retourné avec succès.",
-      rental: rental
+      rental: rental,
+      bookStock: {
+        availableCopies: book.availableCopies,
+        returnedCount: book.returnedCount
+      }
     });
+
+    console.log("🎉 Retour réussi !");
+    console.log("📚 === FIN RETOUR LIVRE (SUCCÈS) ===");
+
   } catch (error) {
     console.error("❌ returnBook:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });

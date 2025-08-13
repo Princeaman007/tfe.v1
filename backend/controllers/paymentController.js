@@ -75,14 +75,31 @@ export const createCheckoutSession = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
+    console.log("💳 === DÉBUT VÉRIFICATION PAIEMENT ===");
+    
     const { sessionId } = req.body;
-    if (!sessionId) return res.status(400).json({ message: "Session ID manquant" });
+    if (!sessionId) {
+      console.log("❌ Session ID manquant");
+      return res.status(400).json({ message: "Session ID manquant" });
+    }
 
+    console.log("🔍 Récupération de la session Stripe:", sessionId);
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (!session) return res.status(404).json({ message: "Session introuvable" });
+    if (!session) {
+      console.log("❌ Session Stripe introuvable");
+      return res.status(404).json({ message: "Session introuvable" });
+    }
 
+    console.log("✅ Session Stripe trouvée:", {
+      id: session.id,
+      payment_status: session.payment_status,
+      metadata: session.metadata
+    });
+
+    // Vérifier si la location existe déjà
     const existingRental = await Rental.findOne({ stripeSessionId: session.id });
     if (existingRental) {
+      console.log("ℹ️ Location déjà existante:", existingRental._id);
       return res.status(200).json({
         message: "Paiement déjà vérifié",
         rental: {
@@ -101,9 +118,34 @@ export const verifyPayment = async (req, res) => {
     const bookId = session.metadata.bookId;
 
     if (!userId || !bookId) {
+      console.log("❌ Métadonnées manquantes:", { userId, bookId });
       return res.status(400).json({ message: "Données manquantes dans la session Stripe" });
     }
 
+    console.log("📝 Données de location:", { userId, bookId });
+
+    // ✅ VÉRIFIER ET METTRE À JOUR LE STOCK DU LIVRE
+    console.log("📖 Vérification du livre et du stock...");
+    const book = await Book.findById(bookId);
+    if (!book) {
+      console.log("❌ Livre non trouvé:", bookId);
+      return res.status(404).json({ message: "Livre non trouvé" });
+    }
+
+    console.log("📊 Stock actuel du livre:", {
+      title: book.title,
+      availableCopies: book.availableCopies,
+      borrowedCount: book.borrowedCount || 0
+    });
+
+    // Vérifier la disponibilité
+    if (book.availableCopies <= 0) {
+      console.log("❌ Stock épuisé");
+      return res.status(400).json({ message: "Livre non disponible" });
+    }
+
+    // Créer la location
+    console.log("📝 Création de la location...");
     const borrowedAt = new Date();
     const dueDate = new Date();
     dueDate.setDate(borrowedAt.getDate() + 30); // 30 jours de location
@@ -117,21 +159,59 @@ export const verifyPayment = async (req, res) => {
       status: "borrowed",
     });
 
+    console.log("✅ Location créée:", rental._id);
+
+    // ✅ DÉCRÉMENTER LE STOCK ET INCRÉMENTER borrowedCount
+    console.log("📊 Mise à jour du stock...");
+    const updatedBook = await Book.findByIdAndUpdate(
+      bookId,
+      {
+        $inc: {
+          availableCopies: -1,        // ✅ ENLEVER 1 DU STOCK
+          borrowedCount: 1            // ✅ AJOUTER 1 AUX EMPRUNTS
+        }
+      },
+      { 
+        new: true,
+        runValidators: true 
+      }
+    );
+
+    console.log("📊 Stock mis à jour:", {
+      title: updatedBook.title,
+      availableCopies: updatedBook.availableCopies,
+      borrowedCount: updatedBook.borrowedCount,
+      stockChange: "Stock décrementé et borrowedCount incrémenté"
+    });
+
+    console.log("🎉 Location et stock mis à jour avec succès !");
+
     res.status(201).json({
-      message: "Location enregistrée",
+      success: true,
+      message: "Location enregistrée avec succès",
       rental: {
         ...rental._doc,
         borrowedAt: borrowedAt.toISOString(),
         dueDate: dueDate.toISOString(),
+      },
+      bookStock: {
+        availableCopies: updatedBook.availableCopies,
+        borrowedCount: updatedBook.borrowedCount
       }
     });
 
+    console.log("💳 === FIN VÉRIFICATION PAIEMENT (SUCCÈS) ===");
+
   } catch (error) {
-    console.error("❌ Erreur vérification paiement :", error);
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    console.error("❌ === ERREUR VÉRIFICATION PAIEMENT ===");
+    console.error("❌ Erreur complète:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Erreur serveur", 
+      error: error.message 
+    });
   }
 };
-
 
 
 // ✅ Webhook Stripe

@@ -196,7 +196,34 @@ export const verifyToken = async (req, res) => {
 };
 
 
+export const adminResetPassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newPassword, notifyUser = true } = req.body;
+    
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
 
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
+    await user.save();
+
+    // Optionnel: Envoyer email de notification
+    if (notifyUser) {
+      // Code d'envoi d'email...
+    }
+
+    res.status(200).json({ 
+      message: 'Mot de passe réinitialisé avec succès' 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Erreur lors de la réinitialisation du mot de passe' 
+    });
+  }
+};
 
 
 // ✅ Mot de passe oublié
