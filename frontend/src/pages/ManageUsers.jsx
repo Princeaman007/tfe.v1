@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
-  Container, Row, Col, Card, Table, Button, Modal, Form, Badge,
+  Container, Row, Col, Card, Table, Button, Modal, Badge,
   Spinner, Alert, Pagination, InputGroup, Dropdown
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import UserFormModal from "../components/UserForm";
+// import { AdminResetPasswordModal } from "../components/PasswordResetComponents";
 
 const ManageUsers = () => {
   const { user } = useAuth();
@@ -23,16 +26,8 @@ const ManageUsers = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  // Données du formulaire
+  // Données sélectionnées
   const [selectedUser, setSelectedUser] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    role: "user",
-    password: "",
-    isVerified: true
-  });
-  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -90,7 +85,6 @@ const ManageUsers = () => {
       setStats(response.data);
     } catch (error) {
       console.error("❌ Erreur lors du chargement des statistiques:", error);
-      console.error("📋 Réponse serveur:", error.response?.data);
       
       if (error.response?.status !== 403) {
         toast.error("Erreur lors du chargement des statistiques");
@@ -98,65 +92,12 @@ const ManageUsers = () => {
     }
   };
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    
-    // Validations côté client
-    if (!formData.name.trim()) {
-      toast.error("Le nom est obligatoire");
-      return;
-    }
-    
-    if (formData.name.length < 2 || formData.name.length > 50) {
-      toast.error("Le nom doit contenir entre 2 et 50 caractères");
-      return;
-    }
-    
-    if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(formData.name)) {
-      toast.error("Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes");
-      return;
-    }
-    
-    if (!formData.email.trim()) {
-      toast.error("L'email est obligatoire");
-      return;
-    }
-    
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      toast.error("Format d'email invalide");
-      return;
-    }
-    
-    if (!formData.password || formData.password.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
-      return;
-    }
-    
-    // Validation du format du mot de passe
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
-    if (!passwordRegex.test(formData.password)) {
-      toast.error("Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre");
-      return;
-    }
-    
+  const handleCreateUser = async (userData) => {
     try {
       console.log("📤 Création utilisateur par admin...");
-      console.log("📋 Données:", { ...formData, password: '***' });
+      console.log("📋 Données:", { ...userData, password: '***' });
       
-      // ✅ Préparer les données selon la validation serveur
-      const requestData = {
-        name: formData.name.trim(),
-        email: formData.email.toLowerCase().trim(),
-        password: formData.password,
-        confirmPassword: formData.password, // ✅ Ajout du champ manquant
-        // ✅ Envoyer role et isVerified seulement si votre validation l'autorise
-        ...(formData.role && { role: formData.role }),
-        ...(typeof formData.isVerified === 'boolean' && { isVerified: formData.isVerified })
-      };
-
-      console.log("📋 Données envoyées au serveur:", { ...requestData, password: '***', confirmPassword: '***' });
-      
-      await axios.post("http://localhost:5000/api/users", requestData, {
+      await axios.post("http://localhost:5000/api/users", userData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
@@ -165,77 +106,33 @@ const ManageUsers = () => {
       
       toast.success("Utilisateur créé avec succès!");
       setShowCreateModal(false);
-      resetForm();
       fetchUsers();
       fetchStats();
     } catch (error) {
       console.error("❌ Erreur création utilisateur:", error);
-      console.error("📋 Réponse serveur COMPLÈTE:", JSON.stringify(error.response?.data, null, 2));
-      console.error("📋 Status:", error.response?.status);
-      console.error("📋 Headers:", error.response?.headers);
       
-      // Afficher les détails de l'erreur pour debug
-      if (error.response?.data) {
-        console.log("🔍 Détails de l'erreur:");
-        console.log("- Message:", error.response.data.message);
-        console.log("- Errors:", error.response.data.errors);
-        console.log("- Success:", error.response.data.success);
-      }
-      
-      if (error.response?.data?.errors) {
-        // Erreurs de validation express-validator
-        const validationErrors = error.response.data.errors;
-        const errorMessages = validationErrors.map(err => `${err.path || err.field}: ${err.msg}`).join('\n');
-        toast.error(`Erreurs de validation:\n${errorMessages}`);
-      } else if (error.response?.status === 403) {
-        toast.error("Vous n'avez pas les droits pour effectuer cette action");
-      } else if (error.response?.status === 400) {
-        toast.error(error.response?.data?.message || "Données invalides - Vérifiez les logs de la console");
-      } else {
-        toast.error(error.response?.data?.message || "Erreur lors de la création");
-      }
+      // L'erreur sera gérée par UserFormModal
+      throw error;
     }
   };
 
-  const handleUpdateUser = async (e) => {
-    e.preventDefault();
-    
-    // Validations côté client
-    if (!formData.name.trim()) {
-      toast.error("Le nom est obligatoire");
-      return;
-    }
-    
-    if (!formData.email.trim()) {
-      toast.error("L'email est obligatoire");
-      return;
-    }
-    
+  const handleUpdateUser = async (userId, userData) => {
     try {
-      console.log("📝 Mise à jour utilisateur:", selectedUser._id);
+      console.log("📝 Mise à jour utilisateur:", userId);
       
-      await axios.put(`http://localhost:5000/api/users/${selectedUser._id}`, {
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        isVerified: formData.isVerified
-      }, {
+      await axios.put(`http://localhost:5000/api/users/${userId}`, userData, {
         withCredentials: true
       });
 
       toast.success("Utilisateur mis à jour avec succès!");
       setShowEditModal(false);
-      resetForm();
+      setSelectedUser(null);
       fetchUsers();
     } catch (error) {
       console.error("❌ Erreur mise à jour utilisateur:", error);
-      console.error("📋 Réponse serveur:", error.response?.data);
       
-      if (error.response?.status === 403) {
-        toast.error("Vous n'avez pas les droits pour effectuer cette action");
-      } else {
-        toast.error(error.response?.data?.message || "Erreur lors de la mise à jour");
-      }
+      // L'erreur sera gérée par UserFormModal
+      throw error;
     }
   };
 
@@ -254,7 +151,6 @@ const ManageUsers = () => {
       fetchStats();
     } catch (error) {
       console.error("❌ Erreur suppression utilisateur:", error);
-      console.error("📋 Réponse serveur:", error.response?.data);
       
       if (error.response?.status === 403) {
         toast.error("Seul un super admin peut supprimer des utilisateurs");
@@ -264,52 +160,27 @@ const ManageUsers = () => {
     }
   };
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    
-    // Validation côté client
-    if (!newPassword || newPassword.length < 6) {
-      toast.error("Le mot de passe doit contenir au moins 6 caractères");
-      return;
-    }
-
-    // Validation du format du mot de passe
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
-    if (!passwordRegex.test(newPassword)) {
-      toast.error("Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre");
-      return;
-    }
-
-    try {
-      console.log("🔑 Changement de mot de passe pour:", selectedUser.name);
+  // const handleResetPassword = async (userId, passwordData) => {
+  //   try {
+  //     console.log("🔑 Réinitialisation mot de passe pour:", userId);
       
-      await axios.put(`http://localhost:5000/api/users/${selectedUser._id}/reset-password`, {
-        newPassword,
-        confirmNewPassword: newPassword,
-        notifyUser: true
-      }, {
-        withCredentials: true
-      });
+  //     await axios.put(`http://localhost:5000/api/users/${userId}/reset-password`, {
+  //       ...passwordData,
+  //       notifyUser: true
+  //     }, {
+  //       withCredentials: true
+  //     });
       
-      toast.success("Mot de passe réinitialisé avec succès! L'utilisateur a été notifié par email.");
-      setShowPasswordModal(false);
-      setNewPassword("");
-      setSelectedUser(null);
-    } catch (error) {
-      console.error("❌ Erreur changement de mot de passe:", error);
-      console.error("📋 Réponse serveur:", error.response?.data);
+  //     toast.success("Mot de passe réinitialisé avec succès! L'utilisateur a été notifié par email.");
+  //     setShowPasswordModal(false);
+  //     setSelectedUser(null);
+  //   } catch (error) {
+  //     console.error("❌ Erreur réinitialisation mot de passe:", error);
       
-      if (error.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
-        const errorMessages = validationErrors.map(err => err.msg).join(', ');
-        toast.error(errorMessages);
-      } else if (error.response?.status === 403) {
-        toast.error("Vous n'avez pas les droits pour effectuer cette action");
-      } else {
-        toast.error(error.response?.data?.message || "Erreur lors du changement de mot de passe");
-      }
-    }
-  };
+  //     // L'erreur sera gérée par AdminResetPasswordModal
+  //     throw error;
+  //   }
+  // };
 
   const handleToggleVerification = async (userId) => {
     try {
@@ -323,7 +194,6 @@ const ManageUsers = () => {
       fetchUsers();
     } catch (error) {
       console.error("❌ Erreur basculement vérification:", error);
-      console.error("📋 Réponse serveur:", error.response?.data);
       
       if (error.response?.status === 403) {
         toast.error("Vous n'avez pas les droits pour effectuer cette action");
@@ -333,62 +203,68 @@ const ManageUsers = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      email: "",
-      role: "user",
-      password: "",
-      isVerified: true
-    });
-    setSelectedUser(null);
-  };
-
-  const openEditModal = (user) => {
-    setSelectedUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      isVerified: user.isVerified
-    });
+  const openEditModal = (userToEdit) => {
+    setSelectedUser(userToEdit);
     setShowEditModal(true);
   };
 
-  const openDeleteModal = (user) => {
-    setSelectedUser(user);
+  const openDeleteModal = (userToDelete) => {
+    setSelectedUser(userToDelete);
     setShowDeleteModal(true);
   };
 
-  const openPasswordModal = (user) => {
-    setSelectedUser(user);
-    setNewPassword("");
+  const openPasswordModal = (userForPassword) => {
+    setSelectedUser(userForPassword);
     setShowPasswordModal(true);
   };
 
   const getRoleBadge = (role) => {
     const variants = {
       user: "secondary",
-      admin: "primary",
+      admin: "primary", 
       superAdmin: "danger"
     };
-    return <Badge bg={variants[role] || "secondary"}>{role}</Badge>;
+    const labels = {
+      user: "Utilisateur",
+      admin: "Admin",
+      superAdmin: "Super Admin"
+    };
+    return <Badge bg={variants[role] || "secondary"}>{labels[role] || role}</Badge>;
   };
 
   const getVerificationBadge = (isVerified) => {
     return (
       <Badge bg={isVerified ? "success" : "warning"}>
+        <i className={`fas ${isVerified ? 'fa-check-circle' : 'fa-exclamation-triangle'} me-1`}></i>
         {isVerified ? "Vérifié" : "Non vérifié"}
       </Badge>
     );
   };
 
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const nameParts = name.split(" ");
+    return nameParts.map(part => part[0].toUpperCase()).join("").slice(0, 2);
+  };
+
+  const getAvatarColor = (role) => {
+    switch (role) {
+      case 'superAdmin': return '#dc3545';
+      case 'admin': return '#fd7e14';
+      default: return '#007bff';
+    }
+  };
+
   return (
     <Container fluid className="py-4">
+      {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="fw-bold text-primary mb-1">Gestion des Utilisateurs</h2>
-          <p className="text-muted mb-0">Créer, modifier et gérer les utilisateurs</p>
+          <h2 className="fw-bold text-primary mb-1">
+            <i className="fas fa-users me-2"></i>
+            Gestion des Utilisateurs
+          </h2>
+          <p className="text-muted mb-0">Créer, modifier et gérer les utilisateurs de la plateforme</p>
         </div>
         {(user?.role === "admin" || user?.role === "superAdmin") && (
           <Button
@@ -396,8 +272,8 @@ const ManageUsers = () => {
             onClick={() => setShowCreateModal(true)}
             className="d-flex align-items-center gap-2"
           >
-            <i className="fas fa-plus"></i>
-            Créer un utilisateur
+            <i className="fas fa-user-plus"></i>
+            Nouvel utilisateur
           </Button>
         )}
       </div>
@@ -405,164 +281,210 @@ const ManageUsers = () => {
       {/* Statistiques */}
       <Row className="mb-4">
         <Col md={3}>
-          <Card className="text-center border-0 bg-light">
-            <Card.Body>
-              <h4 className="text-primary mb-1">{stats.totalUsers || 0}</h4>
-              <p className="text-muted mb-0">Total utilisateurs</p>
+          <Card className="text-center border-0 shadow-sm bg-gradient">
+            <Card.Body className="py-4">
+              <div className="text-primary mb-2">
+                <i className="fas fa-users" style={{ fontSize: "2rem" }}></i>
+              </div>
+              <h3 className="fw-bold text-primary mb-1">{stats.totalUsers || 0}</h3>
+              <p className="text-muted mb-0 small">Total utilisateurs</p>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center border-0 bg-light">
-            <Card.Body>
-              <h4 className="text-success mb-1">{stats.verifiedUsers || 0}</h4>
-              <p className="text-muted mb-0">Vérifiés</p>
+          <Card className="text-center border-0 shadow-sm bg-gradient">
+            <Card.Body className="py-4">
+              <div className="text-success mb-2">
+                <i className="fas fa-check-circle" style={{ fontSize: "2rem" }}></i>
+              </div>
+              <h3 className="fw-bold text-success mb-1">{stats.verifiedUsers || 0}</h3>
+              <p className="text-muted mb-0 small">Comptes vérifiés</p>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center border-0 bg-light">
-            <Card.Body>
-              <h4 className="text-warning mb-1">{stats.unverifiedUsers || 0}</h4>
-              <p className="text-muted mb-0">Non vérifiés</p>
+          <Card className="text-center border-0 shadow-sm bg-gradient">
+            <Card.Body className="py-4">
+              <div className="text-warning mb-2">
+                <i className="fas fa-exclamation-triangle" style={{ fontSize: "2rem" }}></i>
+              </div>
+              <h3 className="fw-bold text-warning mb-1">{stats.unverifiedUsers || 0}</h3>
+              <p className="text-muted mb-0 small">Non vérifiés</p>
             </Card.Body>
           </Card>
         </Col>
         <Col md={3}>
-          <Card className="text-center border-0 bg-light">
-            <Card.Body>
-              <h4 className="text-info mb-1">{stats.newUsersThisMonth || 0}</h4>
-              <p className="text-muted mb-0">Nouveaux ce mois</p>
+          <Card className="text-center border-0 shadow-sm bg-gradient">
+            <Card.Body className="py-4">
+              <div className="text-info mb-2">
+                <i className="fas fa-user-plus" style={{ fontSize: "2rem" }}></i>
+              </div>
+              <h3 className="fw-bold text-info mb-1">{stats.newUsersThisMonth || 0}</h3>
+              <p className="text-muted mb-0 small">Nouveaux ce mois</p>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
       {/* Filtres */}
-      <Row className="mb-4">
-        <Col md={6}>
-          <InputGroup>
-            <InputGroup.Text>
-              <i className="fas fa-search"></i>
-            </InputGroup.Text>
-            <Form.Control
-              type="text"
-              placeholder="Rechercher par nom ou email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </InputGroup>
-        </Col>
-        <Col md={3}>
-          <Form.Select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-          >
-            <option value="">Tous les rôles</option>
-            <option value="user">Utilisateur</option>
-            <option value="admin">Admin</option>
-            <option value="superAdmin">Super Admin</option>
-          </Form.Select>
-        </Col>
-        <Col md={3}>
-          <Button
-            variant="outline-secondary"
-            onClick={() => {
-              setSearch("");
-              setRoleFilter("");
-              setCurrentPage(1);
-            }}
-          >
-            <i className="fas fa-times me-2"></i>
-            Réinitialiser
-          </Button>
-        </Col>
-      </Row>
+      <Card className="shadow-sm mb-4">
+        <Card.Body>
+          <Row className="align-items-end">
+            <Col md={6}>
+              <label className="form-label small text-muted">RECHERCHER</label>
+              <InputGroup>
+                <InputGroup.Text>
+                  <i className="fas fa-search"></i>
+                </InputGroup.Text>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Nom, email..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </InputGroup>
+            </Col>
+            <Col md={3}>
+              <label className="form-label small text-muted">RÔLE</label>
+              <select
+                className="form-select"
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+              >
+                <option value="">Tous les rôles</option>
+                <option value="user">Utilisateur</option>
+                <option value="admin">Admin</option>
+                <option value="superAdmin">Super Admin</option>
+              </select>
+            </Col>
+            <Col md={3}>
+              <Button
+                variant="outline-secondary"
+                onClick={() => {
+                  setSearch("");
+                  setRoleFilter("");
+                  setCurrentPage(1);
+                }}
+                className="w-100"
+              >
+                <i className="fas fa-times me-2"></i>
+                Réinitialiser
+              </Button>
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
 
       {/* Table des utilisateurs */}
       <Card className="shadow-sm">
-        <Card.Body>
+        <Card.Body className="p-0">
           {loading ? (
-            <div className="text-center py-4">
+            <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
-              <p className="mt-2 text-muted">Chargement des utilisateurs...</p>
+              <p className="mt-3 text-muted">Chargement des utilisateurs...</p>
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-4">
+            <div className="text-center py-5">
+              <i className="fas fa-users text-muted mb-3" style={{ fontSize: "3rem" }}></i>
               <h5 className="text-muted">Aucun utilisateur trouvé</h5>
               {search || roleFilter ? (
                 <p className="text-muted">Essayez de modifier vos critères de recherche</p>
-              ) : null}
+              ) : (
+                <p className="text-muted">Commencez par créer votre premier utilisateur</p>
+              )}
             </div>
           ) : (
-            <Table responsive hover>
-              <thead>
+            <Table responsive hover className="mb-0">
+              <thead className="bg-light">
                 <tr>
-                  <th>Nom</th>
-                  <th>Email</th>
-                  <th>Rôle</th>
-                  <th>Statut</th>
-                  <th>Date de création</th>
-                  <th>Actions</th>
+                  <th className="border-0 py-3">Utilisateur</th>
+                  <th className="border-0 py-3">Email</th>
+                  <th className="border-0 py-3">Rôle</th>
+                  <th className="border-0 py-3">Statut</th>
+                  <th className="border-0 py-3">Inscription</th>
+                  <th className="border-0 py-3 text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((userItem) => (
                   <tr key={userItem._id}>
-                    <td>
+                    <td className="py-3">
                       <div className="d-flex align-items-center">
                         <div
-                          className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-2"
-                          style={{ width: "35px", height: "35px", fontSize: "0.8rem" }}
+                          className="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
+                          style={{ 
+                            width: "40px", 
+                            height: "40px", 
+                            fontSize: "0.9rem",
+                            backgroundColor: getAvatarColor(userItem.role),
+                            fontWeight: "bold"
+                          }}
                         >
-                          {userItem.name.charAt(0).toUpperCase()}
+                          {getInitials(userItem.name)}
                         </div>
-                        {userItem.name}
+                        <div>
+                          <div className="fw-semibold">{userItem.name}</div>
+                          {userItem.lastLoginAt && (
+                            <small className="text-muted">
+                              Dernière connexion: {new Date(userItem.lastLoginAt).toLocaleDateString('fr-FR')}
+                            </small>
+                          )}
+                        </div>
                       </div>
                     </td>
-                    <td>{userItem.email}</td>
-                    <td>{getRoleBadge(userItem.role)}</td>
-                    <td>{getVerificationBadge(userItem.isVerified)}</td>
-                    <td>{new Date(userItem.createdAt).toLocaleDateString('fr-FR')}</td>
-                    <td>
-                      <Dropdown>
-                        <Dropdown.Toggle variant="outline-secondary" size="sm">
+                    <td className="py-3">
+                      <div className="text-muted">{userItem.email}</div>
+                    </td>
+                    <td className="py-3">{getRoleBadge(userItem.role)}</td>
+                    <td className="py-3">{getVerificationBadge(userItem.isVerified)}</td>
+                    <td className="py-3">
+                      <div className="text-muted small">
+                        {new Date(userItem.createdAt).toLocaleDateString('fr-FR')}
+                      </div>
+                    </td>
+                    <td className="py-3 text-end">
+                      <Dropdown align="end">
+                        <Dropdown.Toggle variant="outline-secondary" size="sm" className="border-0">
                           <i className="fas fa-ellipsis-v"></i>
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
-                          {/* Modifier - Admin/SuperAdmin */}
+                          {/* Modifier */}
                           {(user?.role === "admin" || user?.role === "superAdmin") && (
                             <Dropdown.Item onClick={() => openEditModal(userItem)}>
-                              <i className="fas fa-edit me-2"></i>
+                              <i className="fas fa-edit me-2 text-warning"></i>
                               Modifier
                             </Dropdown.Item>
                           )}
                           
-                          {/* Changer mot de passe - Admin/SuperAdmin */}
-                          {/* {(user?.role === "admin" || user?.role === "superAdmin") && (
-                            <Dropdown.Item onClick={() => openPasswordModal(userItem)}>
-                              <i className="fas fa-key me-2"></i>
-                              Réinitialiser mot de passe
-                            </Dropdown.Item>
-                          )} */}
-                          
-                          {/* Basculer vérification - Admin/SuperAdmin */}
+                          {/* Changer mot de passe */}
                           {(user?.role === "admin" || user?.role === "superAdmin") && (
-                            <Dropdown.Item onClick={() => handleToggleVerification(userItem._id)}>
-                              <i className="fas fa-check-circle me-2"></i>
-                              {userItem.isVerified ? "Marquer non vérifié" : "Marquer vérifié"}
+                            <Dropdown.Item onClick={() => openPasswordModal(userItem)}>
+                              <i className="fas fa-key me-2 text-info"></i>
+                              Réinitialiser mot de passe
                             </Dropdown.Item>
                           )}
                           
-                          {/* Supprimer - SuperAdmin uniquement et pas sur autre SuperAdmin */}
-                          {user?.role === "superAdmin" && userItem.role !== "superAdmin" && userItem._id !== user.id && (
-                            <Dropdown.Item
-                              className="text-danger"
-                              onClick={() => openDeleteModal(userItem)}
-                            >
-                              <i className="fas fa-trash me-2"></i>
-                              Supprimer
+                          {/* Basculer vérification */}
+                          {(user?.role === "admin" || user?.role === "superAdmin") && (
+                            <Dropdown.Item onClick={() => handleToggleVerification(userItem._id)}>
+                              <i className={`fas ${userItem.isVerified ? 'fa-times-circle' : 'fa-check-circle'} me-2 text-primary`}></i>
+                              {userItem.isVerified ? "Retirer vérification" : "Marquer vérifié"}
                             </Dropdown.Item>
+                          )}
+                          
+                          {/* Divider */}
+                          {user?.role === "superAdmin" && userItem.role !== "superAdmin" && userItem._id !== user.id && (
+                            <>
+                              <Dropdown.Divider />
+                              <Dropdown.Item
+                                className="text-danger"
+                                onClick={() => openDeleteModal(userItem)}
+                              >
+                                <i className="fas fa-trash me-2"></i>
+                                Supprimer
+                              </Dropdown.Item>
+                            </>
                           )}
                         </Dropdown.Menu>
                       </Dropdown>
@@ -616,246 +538,43 @@ const ManageUsers = () => {
       )}
 
       {/* Modal Créer Utilisateur */}
-      <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="fas fa-plus me-2 text-primary"></i>
-            Créer un utilisateur
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleCreateUser}>
-          <Modal.Body>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Nom <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Nom complet"
-                    required
-                  />
-                  <Form.Text className="text-muted">
-                    2-50 caractères, lettres uniquement
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="email@exemple.com"
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Mot de passe <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Mot de passe temporaire"
-                    required
-                    minLength={6}
-                  />
-                  <Form.Text className="text-muted">
-                    Min. 6 caractères avec majuscule, minuscule et chiffre
-                  </Form.Text>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Rôle</Form.Label>
-                  <Form.Select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  >
-                    <option value="user">Utilisateur</option>
-                    <option value="admin">Admin</option>
-                    {user?.role === "superAdmin" && (
-                      <option value="superAdmin">Super Admin</option>
-                    )}
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-            </Row>
-
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                label="Compte vérifié (l'utilisateur recevra un email de bienvenue)"
-                checked={formData.isVerified}
-                onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
-              />
-            </Form.Group>
-
-            <Alert variant="info" className="small">
-              <i className="fas fa-info-circle me-2"></i>
-              L'utilisateur recevra ses identifiants par email et devra changer son mot de passe lors de sa première connexion.
-            </Alert>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-              Annuler
-            </Button>
-            <Button variant="primary" type="submit">
-              <i className="fas fa-save me-2"></i>
-              Créer l'utilisateur
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      <UserFormModal
+        show={showCreateModal}
+        onHide={() => setShowCreateModal(false)}
+        onSubmit={handleCreateUser}
+        title="Créer un Nouvel Utilisateur"
+        mode="create"
+        currentUserRole={user?.role}
+        initialData={null}
+      />
 
       {/* Modal Modifier Utilisateur */}
-      <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="fas fa-edit me-2 text-warning"></i>
-            Modifier l'utilisateur
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleUpdateUser}>
-          <Modal.Body>
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Nom <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Email <span className="text-danger">*</span></Form.Label>
-                  <Form.Control
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+      <UserFormModal
+        show={showEditModal}
+        onHide={() => {
+          setShowEditModal(false);
+          setSelectedUser(null);
+        }}
+        onSubmit={handleUpdateUser}
+        title="Modifier l'Utilisateur"
+        mode="edit"
+        currentUserRole={user?.role}
+        initialData={selectedUser}
+      />
 
-            <Row>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Rôle</Form.Label>
-                  <Form.Select
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    disabled={selectedUser?.role === "superAdmin" && user?.role !== "superAdmin"}
-                  >
-                    <option value="user">Utilisateur</option>
-                    <option value="admin">Admin</option>
-                    {user?.role === "superAdmin" && (
-                      <option value="superAdmin">Super Admin</option>
-                    )}
-                  </Form.Select>
-                  {selectedUser?.role === "superAdmin" && user?.role !== "superAdmin" && (
-                    <Form.Text className="text-muted">
-                      Seul un super admin peut modifier le rôle d'un autre super admin
-                    </Form.Text>
-                  )}
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Statut de vérification</Form.Label>
-                  <Form.Check
-                    type="checkbox"
-                    label="Compte vérifié"
-                    checked={formData.isVerified}
-                    onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
-                    className="mt-2"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
-
-            {selectedUser?._id === user?.id && (
-              <Alert variant="warning" className="small">
-                <i className="fas fa-exclamation-triangle me-2"></i>
-                Vous modifiez votre propre profil. Soyez prudent avec les changements de rôle.
-              </Alert>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-              Annuler
-            </Button>
-            <Button variant="warning" type="submit">
-              <i className="fas fa-save me-2"></i>
-              Sauvegarder
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
-
-      {/* Modal Changer Mot de Passe */}
-      <Modal show={showPasswordModal} onHide={() => setShowPasswordModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>
-            <i className="fas fa-key me-2 text-info"></i>
-            Réinitialiser le mot de passe
-          </Modal.Title>
-        </Modal.Header>
-        <Form onSubmit={handleChangePassword}>
-          <Modal.Body>
-            <Alert variant="info">
-              <i className="fas fa-info-circle me-2"></i>
-              Vous réinitialisez le mot de passe de <strong>{selectedUser?.name}</strong>
-              <br />
-              <small>L'utilisateur sera automatiquement notifié par email avec le nouveau mot de passe temporaire.</small>
-            </Alert>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Nouveau mot de passe <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Minimum 6 caractères"
-                required
-                minLength={6}
-              />
-              <Form.Text className="text-muted">
-                Doit contenir au moins une minuscule, une majuscule et un chiffre
-              </Form.Text>
-            </Form.Group>
-
-            <Alert variant="warning" className="small">
-              <i className="fas fa-exclamation-triangle me-2"></i>
-              <strong>Important :</strong> L'utilisateur devrait changer ce mot de passe lors de sa prochaine connexion pour des raisons de sécurité.
-            </Alert>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowPasswordModal(false)}>
-              Annuler
-            </Button>
-            <Button variant="info" type="submit">
-              <i className="fas fa-save me-2"></i>
-              Réinitialiser le mot de passe
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
+      {/* Modal Réinitialiser Mot de Passe */}
+      <AdminResetPasswordModal
+        show={showPasswordModal}
+        onHide={() => {
+          setShowPasswordModal(false);
+          setSelectedUser(null);
+        }}
+        onSubmit={handleResetPassword}
+        user={selectedUser}
+      />
 
       {/* Modal Supprimer Utilisateur */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
             <i className="fas fa-exclamation-triangle me-2 text-danger"></i>
@@ -865,28 +584,48 @@ const ManageUsers = () => {
         <Modal.Body>
           <Alert variant="danger">
             <i className="fas fa-exclamation-triangle me-2"></i>
-            <strong>Attention !</strong> Cette action est irréversible.
+            <strong>Attention !</strong> Cette action est irréversible et supprimera définitivement toutes les données de l'utilisateur.
           </Alert>
 
-          <p>
-            Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur <strong>{selectedUser?.name}</strong> ?
-          </p>
-
-          <div className="bg-light p-3 rounded">
-            <small className="text-muted">
-              <strong>Email :</strong> {selectedUser?.email}<br />
-              <strong>Rôle :</strong> {selectedUser?.role}<br />
-              <strong>Créé le :</strong> {selectedUser && new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}
-            </small>
+          <div className="text-center mb-4">
+            <div
+              className="rounded-circle text-white d-flex justify-content-center align-items-center mx-auto mb-3"
+              style={{ 
+                width: "60px", 
+                height: "60px", 
+                fontSize: "1.5rem",
+                backgroundColor: getAvatarColor(selectedUser?.role),
+                fontWeight: "bold"
+              }}
+            >
+              {getInitials(selectedUser?.name)}
+            </div>
+            <h5>Supprimer {selectedUser?.name} ?</h5>
           </div>
 
-          <Alert variant="warning" className="mt-3 small">
+          <div className="bg-light p-3 rounded mb-3">
+            <div className="row">
+              <div className="col-sm-4"><strong>Email:</strong></div>
+              <div className="col-sm-8">{selectedUser?.email}</div>
+            </div>
+            <div className="row">
+              <div className="col-sm-4"><strong>Rôle:</strong></div>
+              <div className="col-sm-8">{selectedUser && getRoleBadge(selectedUser.role)}</div>
+            </div>
+            <div className="row">
+              <div className="col-sm-4"><strong>Inscription:</strong></div>
+              <div className="col-sm-8">{selectedUser && new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}</div>
+            </div>
+          </div>
+
+          <Alert variant="warning" className="small">
             <i className="fas fa-info-circle me-2"></i>
-            Toutes les données associées à cet utilisateur seront perdues définitivement.
+            Cette action supprimera également tous les emprunts, favoris et autres données associées à cet utilisateur.
           </Alert>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            <i className="fas fa-times me-2"></i>
             Annuler
           </Button>
           <Button variant="danger" onClick={handleDeleteUser}>
