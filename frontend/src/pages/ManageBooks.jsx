@@ -43,7 +43,7 @@ const ManageBooks = () => {
     try {
       setLoading(true);
       setError("");
-      
+
       console.log("📚 Chargement des livres...", {
         page: currentPage,
         search,
@@ -70,10 +70,10 @@ const ManageBooks = () => {
       setBooks(response.data.books || []);
       setTotalPages(response.data.totalPages || 1);
       setTotalBooks(response.data.totalBooks || 0);
-      
+
     } catch (err) {
       console.error("❌ Erreur fetchBooks:", err);
-      
+
       if (err.response?.status === 401) {
         setError("Session expirée. Veuillez vous reconnecter.");
         toast.error("Session expirée");
@@ -95,7 +95,7 @@ const ManageBooks = () => {
   const fetchGenres = async () => {
     try {
       console.log("🏷️ Chargement des genres...");
-      
+
       const response = await axios.get("http://localhost:5000/api/books/genres", {
         withCredentials: true,
         timeout: 10000,
@@ -117,7 +117,7 @@ const ManageBooks = () => {
     } catch (err) {
       console.error("❌ Erreur fetchGenres:", err);
       setGenres([]);
-      
+
       if (err.response?.status !== 401) {
         toast.error("Erreur lors du chargement des genres");
       }
@@ -139,14 +139,14 @@ const ManageBooks = () => {
       console.log("✅ Livre créé:", response.data);
       toast.success("Livre ajouté avec succès !");
       setShowCreateModal(false);
-      
+
       // Rafraîchir la liste
       await fetchBooks();
-      
+
     } catch (err) {
       console.error("❌ Erreur création livre:", err);
       console.error("📋 Détails erreur:", err.response?.data);
-      
+
       // L'erreur sera gérée par BookFormModal
       throw err;
     }
@@ -167,14 +167,19 @@ const ManageBooks = () => {
       console.log("✅ Livre modifié:", response.data);
       toast.success("Livre modifié avec succès !");
       setEditBook(null);
-      
+
       // Rafraîchir la liste
       await fetchBooks();
-      
+
     } catch (err) {
       console.error("❌ Erreur modification livre:", err);
       console.error("📋 Détails erreur:", err.response?.data);
-      
+
+      // 🔍 AJOUTEZ CES LIGNES
+      console.error("🚨 Erreurs de validation:", err.response?.data?.errors);
+      console.error("📤 Données envoyées:", data);
+      console.error("🆔 Book ID:", bookId);
+
       // L'erreur sera gérée par BookFormModal
       throw err;
     }
@@ -197,7 +202,7 @@ const ManageBooks = () => {
       console.log("✅ Livre supprimé:", response.data);
       toast.success("Livre supprimé avec succès !");
       setDeleteBook(null);
-      
+
       // Rafraîchir la liste
       await fetchBooks();
 
@@ -303,8 +308,8 @@ const ManageBooks = () => {
               <p className="text-muted mb-0">Gérer le catalogue de la bibliothèque</p>
             </div>
             {(user?.role === "admin" || user?.role === "superAdmin") && (
-              <Button 
-                onClick={() => setShowCreateModal(true)} 
+              <Button
+                onClick={() => setShowCreateModal(true)}
                 variant="primary"
                 className="d-flex align-items-center gap-2"
               >
@@ -341,9 +346,9 @@ const ManageBooks = () => {
               <Alert variant="danger" className="mb-0">
                 <i className="fas fa-exclamation-triangle me-2"></i>
                 {error}
-                <Button 
-                  variant="outline-danger" 
-                  size="sm" 
+                <Button
+                  variant="outline-danger"
+                  size="sm"
                   className="ms-3"
                   onClick={() => {
                     setError("");
@@ -399,7 +404,7 @@ const ManageBooks = () => {
       {renderPagination()}
 
       {/* Modals avec validation */}
-      
+
       {/* Modal de création */}
       <BookFormModal
         show={showCreateModal}
@@ -414,7 +419,7 @@ const ManageBooks = () => {
       <BookFormModal
         show={!!editBook}
         onHide={() => setEditBook(null)}
-        onSubmit={handleUpdate}
+        onSubmit={(data) => handleUpdate(editBook._id, data)}  // ← Changez cette ligne
         title="Modifier le Livre"
         mode="edit"
         initialData={editBook}

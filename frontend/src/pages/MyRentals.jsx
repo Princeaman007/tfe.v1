@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { returnBookSchema, extendDueDateSchema, rentalSearchSchema } from "../schemas/rentalSchema";
 import axios from "axios";
-import { 
-  Container, Row, Col, Card, Spinner, Alert, Button, Badge, 
+import {
+  Container, Row, Col, Card, Spinner, Alert, Button, Badge,
   Nav, Tab, Modal, Form, InputGroup, Pagination
 } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,14 +15,14 @@ import { toast } from "react-toastify";
 const MyRentals = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
-  
+
   // États principaux
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [stats, setStats] = useState({});
-  
+
   // Pagination et filtres
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -66,7 +66,7 @@ const MyRentals = () => {
       navigate("/login");
       return;
     }
-    
+
     fetchRentals();
   }, [isAuthenticated, navigate, currentPage, activeTab, filters]);
 
@@ -74,7 +74,7 @@ const MyRentals = () => {
     try {
       setLoading(true);
       setError("");
-      
+
       console.log("📚 Chargement des locations...");
 
       const params = {
@@ -100,7 +100,7 @@ const MyRentals = () => {
         }
       });
 
-      const response = await axios.get("http://localhost:5000/api/rentals/me", {
+      const response = await axios.get("http://localhost:5000/api/rentals", {
         params,
         withCredentials: true,
         timeout: 15000
@@ -128,7 +128,7 @@ const MyRentals = () => {
 
     } catch (err) {
       console.error("❌ Erreur chargement locations:", err);
-      
+
       if (err.response?.status === 401) {
         toast.error("Session expirée, veuillez vous reconnecter");
         navigate("/login");
@@ -138,7 +138,7 @@ const MyRentals = () => {
       } else {
         setError("Impossible de charger vos locations.");
       }
-      
+
       setRentals([]);
     } finally {
       setLoading(false);
@@ -156,7 +156,7 @@ const MyRentals = () => {
           returnedAt: data.returnedAt || new Date().toISOString(),
           fineAmount: data.fineAmount
         },
-        { 
+        {
           withCredentials: true,
           timeout: 10000
         }
@@ -172,7 +172,7 @@ const MyRentals = () => {
 
     } catch (error) {
       console.error("❌ Erreur retour livre:", error);
-      
+
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
         const errorMessages = validationErrors.map(err => err.msg).join(', ');
@@ -192,7 +192,7 @@ const MyRentals = () => {
         {
           newDueDate: data.newDueDate
         },
-        { 
+        {
           withCredentials: true,
           timeout: 10000
         }
@@ -208,7 +208,7 @@ const MyRentals = () => {
 
     } catch (error) {
       console.error("❌ Erreur extension date:", error);
-      
+
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
         const errorMessages = validationErrors.map(err => err.msg).join(', ');
@@ -222,13 +222,13 @@ const MyRentals = () => {
   const handlePayFine = async (rentalId) => {
     try {
       console.log("💳 Paiement amende pour:", rentalId);
-      
+
       const response = await axios.post(
         "http://localhost:5000/api/payment/pay-fine",
         { rentalId },
         { withCredentials: true }
       );
-      
+
       if (response.data.url) {
         window.location.href = response.data.url;
       } else {
@@ -248,12 +248,12 @@ const MyRentals = () => {
 
   const openExtendModal = (rental) => {
     setSelectedRental(rental);
-    
+
     // Calculer la nouvelle date (7 jours supplémentaires)
     const currentDueDate = new Date(rental.dueDate);
     const newDueDate = new Date(currentDueDate);
     newDueDate.setDate(newDueDate.getDate() + 7);
-    
+
     setExtendValue("newDueDate", newDueDate.toISOString().slice(0, 16));
     setShowExtendModal(true);
   };
@@ -280,21 +280,21 @@ const MyRentals = () => {
     if (rental.status === 'returned') {
       return <Badge bg="success">Retourné</Badge>;
     }
-    
+
     if (rental.overdue || rental.daysRemaining < 0) {
       return <Badge bg="danger">En retard</Badge>;
     }
-    
+
     if (rental.daysRemaining <= 3) {
       return <Badge bg="warning" text="dark">Échéance proche</Badge>;
     }
-    
+
     return <Badge bg="primary">En cours</Badge>;
   };
 
   const getDaysRemainingText = (rental) => {
     if (rental.status === 'returned') return 'Retourné';
-    
+
     const days = rental.daysRemaining;
     if (days < 0) return `${Math.abs(days)} jour(s) de retard`;
     if (days === 0) return 'Échéance aujourd\'hui';
@@ -408,7 +408,7 @@ const MyRentals = () => {
                 <option value="returned">Retournés</option>
               </Form.Select>
             </Col>
-            
+
             <Col md={2}>
               <Form.Label className="small text-muted">RETARD</Form.Label>
               <Form.Select
@@ -420,7 +420,7 @@ const MyRentals = () => {
                 <option value="false">À jour</option>
               </Form.Select>
             </Col>
-            
+
             <Col md={3}>
               <Form.Label className="small text-muted">DATE DÉBUT</Form.Label>
               <Form.Control
@@ -429,7 +429,7 @@ const MyRentals = () => {
                 onChange={(e) => handleFilterChange("startDate", e.target.value)}
               />
             </Col>
-            
+
             <Col md={3}>
               <Form.Label className="small text-muted">DATE FIN</Form.Label>
               <Form.Control
@@ -438,7 +438,7 @@ const MyRentals = () => {
                 onChange={(e) => handleFilterChange("endDate", e.target.value)}
               />
             </Col>
-            
+
             <Col md={1}>
               <Button variant="outline-secondary" onClick={resetFilters} title="Réinitialiser">
                 <i className="fas fa-times"></i>
@@ -482,9 +482,9 @@ const MyRentals = () => {
             <Alert variant="danger">
               <i className="fas fa-exclamation-triangle me-2"></i>
               {error}
-              <Button 
-                variant="outline-danger" 
-                size="sm" 
+              <Button
+                variant="outline-danger"
+                size="sm"
                 className="ms-3"
                 onClick={() => {
                   setError("");
@@ -501,7 +501,7 @@ const MyRentals = () => {
               </div>
               <h4 className="text-muted">Aucune location trouvée</h4>
               <p className="text-muted mb-4">
-                {activeTab === 'all' 
+                {activeTab === 'all'
                   ? "Vous n'avez pas encore loué de livre."
                   : `Aucune location dans la catégorie "${activeTab}".`
                 }
@@ -528,7 +528,7 @@ const MyRentals = () => {
                               e.target.src = "https://via.placeholder.com/80x120?text=Livre";
                             }}
                           />
-                          
+
                           <div className="flex-grow-1">
                             <div className="d-flex justify-content-between align-items-start mb-2">
                               <h6 className="mb-1 fw-bold">
@@ -536,12 +536,12 @@ const MyRentals = () => {
                               </h6>
                               {getStatusBadge(rental)}
                             </div>
-                            
+
                             <p className="text-muted mb-1 small">
                               <i className="fas fa-user me-1"></i>
                               {rental.book?.author || "Auteur inconnu"}
                             </p>
-                            
+
                             <div className="mb-2">
                               <small className="text-muted">
                                 <i className="fas fa-calendar me-1"></i>
@@ -557,10 +557,9 @@ const MyRentals = () => {
                             </div>
 
                             <div className="mb-3">
-                              <small className={`fw-bold ${
-                                rental.daysRemaining < 0 ? 'text-danger' : 
-                                rental.daysRemaining <= 3 ? 'text-warning' : 'text-success'
-                              }`}>
+                              <small className={`fw-bold ${rental.daysRemaining < 0 ? 'text-danger' :
+                                  rental.daysRemaining <= 3 ? 'text-warning' : 'text-success'
+                                }`}>
                                 <i className="fas fa-clock me-1"></i>
                                 {getDaysRemainingText(rental)}
                               </small>
@@ -570,7 +569,7 @@ const MyRentals = () => {
                               <div className="mb-3">
                                 <Badge bg={rental.finePaid ? "success" : "warning"} text="dark">
                                   <i className={`fas ${rental.finePaid ? 'fa-check-circle' : 'fa-exclamation-triangle'} me-1`}></i>
-                                  Amende: {rental.fineAmount.toFixed(2)}€ 
+                                  Amende: {rental.fineAmount.toFixed(2)}€
                                   {rental.finePaid ? " (payée)" : " (à payer)"}
                                 </Badge>
                               </div>
@@ -692,7 +691,7 @@ const MyRentals = () => {
             Retourner le livre
           </Modal.Title>
         </Modal.Header>
-        
+
         <form onSubmit={handleSubmitReturn(onReturnSubmit)}>
           <Modal.Body>
             {selectedRental && (
@@ -766,18 +765,18 @@ const MyRentals = () => {
               </>
             )}
           </Modal.Body>
-          
+
           <Modal.Footer>
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               onClick={() => setShowReturnModal(false)}
               disabled={isReturning}
             >
               <i className="fas fa-times me-2"></i>
               Annuler
             </Button>
-            <Button 
-              variant="success" 
+            <Button
+              variant="success"
               type="submit"
               disabled={isReturning}
             >
@@ -805,7 +804,7 @@ const MyRentals = () => {
             Prolonger la location
           </Modal.Title>
         </Modal.Header>
-        
+
         <form onSubmit={handleSubmitExtend(onExtendSubmit)}>
           <Modal.Body>
             {selectedRental && (
@@ -858,18 +857,18 @@ const MyRentals = () => {
               </>
             )}
           </Modal.Body>
-          
+
           <Modal.Footer>
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               onClick={() => setShowExtendModal(false)}
               disabled={isExtending}
             >
               <i className="fas fa-times me-2"></i>
               Annuler
             </Button>
-            <Button 
-              variant="info" 
+            <Button
+              variant="info"
               type="submit"
               disabled={isExtending}
             >

@@ -68,6 +68,9 @@ export const getUserById = async (req, res) => {
 // 🔹 Créer un nouvel utilisateur (Admin/superAdmin)
 export const createUser = async (req, res) => {
   try {
+
+    console.log("🔍 CREATE - Headers:", req.headers['content-type']);
+    console.log("🔍 CREATE - Body:", req.body);
     const { name, email, password, role = "user" } = req.body;
     
     // Validation des champs requis
@@ -122,14 +125,27 @@ export const createUser = async (req, res) => {
 // 🔹 Mettre à jour un utilisateur (Admin/superAdmin)
 export const updateUser = async (req, res) => {
   try {
+
+     console.log("🔍 Headers reçues:", req.headers['content-type']);
+    console.log("🔍 Raw body:", req.body);
+    console.log("🔍 typeof body:", typeof req.body);
+    console.log("🔍 Body keys:", Object.keys(req.body || {}));
     const { id } = req.params;
     const { name, email, role, isVerified } = req.body;
-    
+
+   console.log("🔍 Backend - ID utilisateur:", id);
+    console.log("🔍 Backend - Données reçues:", { name, email, role, isVerified });
+    console.log("🔍 Backend - Utilisateur connecté role:", req.user?.role);
     // Vérifier si l'utilisateur existe
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
+
+      console.log("🔍 Backend - Utilisateur trouvé:", {
+      currentRole: user.role,
+      targetRole: role
+    });
     
     // Empêcher la modification du superAdmin par un admin
     if (user.role === "superAdmin" && req.user.role !== "superAdmin") {

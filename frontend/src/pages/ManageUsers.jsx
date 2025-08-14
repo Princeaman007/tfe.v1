@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
@@ -8,7 +7,6 @@ import {
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import UserFormModal from "../components/UserForm";
-// import { AdminResetPasswordModal } from "../components/PasswordResetComponents";
 
 const ManageUsers = () => {
   const { user } = useAuth();
@@ -24,7 +22,6 @@ const ManageUsers = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Données sélectionnées
   const [selectedUser, setSelectedUser] = useState(null);
@@ -60,7 +57,7 @@ const ManageUsers = () => {
     } catch (error) {
       console.error("❌ Erreur lors du chargement des utilisateurs:", error);
       console.error("📋 Réponse serveur:", error.response?.data);
-      
+
       if (error.response?.status === 403) {
         toast.error("Vous n'avez pas les droits pour accéder à cette fonctionnalité");
       } else if (error.response?.status === 401) {
@@ -76,53 +73,62 @@ const ManageUsers = () => {
   const fetchStats = async () => {
     try {
       console.log('📊 Récupération statistiques...');
-      
+
       const response = await axios.get("http://localhost:5000/api/users/stats", {
         withCredentials: true
       });
-      
+
       console.log('✅ Statistiques reçues:', response.data);
       setStats(response.data);
     } catch (error) {
       console.error("❌ Erreur lors du chargement des statistiques:", error);
-      
+
       if (error.response?.status !== 403) {
         toast.error("Erreur lors du chargement des statistiques");
       }
     }
   };
 
-  const handleCreateUser = async (userData) => {
-    try {
-      console.log("📤 Création utilisateur par admin...");
-      console.log("📋 Données:", { ...userData, password: '***' });
-      
-      await axios.post("http://localhost:5000/api/users", userData, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      toast.success("Utilisateur créé avec succès!");
-      setShowCreateModal(false);
-      fetchUsers();
-      fetchStats();
-    } catch (error) {
-      console.error("❌ Erreur création utilisateur:", error);
-      
-      // L'erreur sera gérée par UserFormModal
-      throw error;
-    }
-  };
+ const handleCreateUser = async (userData) => {
+  try {
+    console.log("📤 Création utilisateur - userData:", userData);
+    console.log("📤 Création utilisateur - JSON:", JSON.stringify(userData));
+    
+    await axios.post("http://localhost:5000/api/users", userData, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    toast.success("Utilisateur créé avec succès!");
+    setShowCreateModal(false);
+    fetchUsers();
+    fetchStats();
+  } catch (error) {
+    console.error("❌ Erreur création utilisateur:", error);
+    console.error("📋 Détails erreur:", error.response?.data);
+    console.error("🚨 Erreurs spécifiques:", JSON.stringify(error.response?.data?.errors, null, 2));
+    
+    throw error;
+  }
+};
 
   const handleUpdateUser = async (userId, userData) => {
     try {
-      console.log("📝 Mise à jour utilisateur:", userId);
-      
-      await axios.put(`http://localhost:5000/api/users/${userId}`, userData, {
-        withCredentials: true
+      console.log("📝 AVANT envoi - userId:", userId);
+      console.log("📝 AVANT envoi - userData:", userData);
+      console.log("📝 AVANT envoi - JSON:", JSON.stringify(userData));
+
+      // ✅ FORCEZ le Content-Type
+      const response = await axios.put(`http://localhost:5000/api/users/${userId}`, userData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'  // ← Ajoutez ceci
+        }
       });
+
+      console.log("✅ Réponse serveur:", response.data);
 
       toast.success("Utilisateur mis à jour avec succès!");
       setShowEditModal(false);
@@ -130,7 +136,7 @@ const ManageUsers = () => {
       fetchUsers();
     } catch (error) {
       console.error("❌ Erreur mise à jour utilisateur:", error);
-      
+
       // L'erreur sera gérée par UserFormModal
       throw error;
     }
@@ -139,7 +145,7 @@ const ManageUsers = () => {
   const handleDeleteUser = async () => {
     try {
       console.log("🗑️ Suppression utilisateur:", selectedUser._id);
-      
+
       await axios.delete(`http://localhost:5000/api/users/${selectedUser._id}`, {
         withCredentials: true
       });
@@ -151,7 +157,7 @@ const ManageUsers = () => {
       fetchStats();
     } catch (error) {
       console.error("❌ Erreur suppression utilisateur:", error);
-      
+
       if (error.response?.status === 403) {
         toast.error("Seul un super admin peut supprimer des utilisateurs");
       } else {
@@ -160,32 +166,10 @@ const ManageUsers = () => {
     }
   };
 
-  // const handleResetPassword = async (userId, passwordData) => {
-  //   try {
-  //     console.log("🔑 Réinitialisation mot de passe pour:", userId);
-      
-  //     await axios.put(`http://localhost:5000/api/users/${userId}/reset-password`, {
-  //       ...passwordData,
-  //       notifyUser: true
-  //     }, {
-  //       withCredentials: true
-  //     });
-      
-  //     toast.success("Mot de passe réinitialisé avec succès! L'utilisateur a été notifié par email.");
-  //     setShowPasswordModal(false);
-  //     setSelectedUser(null);
-  //   } catch (error) {
-  //     console.error("❌ Erreur réinitialisation mot de passe:", error);
-      
-  //     // L'erreur sera gérée par AdminResetPasswordModal
-  //     throw error;
-  //   }
-  // };
-
   const handleToggleVerification = async (userId) => {
     try {
       console.log("🔄 Basculement vérification pour:", userId);
-      
+
       await axios.patch(`http://localhost:5000/api/users/${userId}/verify`, {}, {
         withCredentials: true
       });
@@ -194,7 +178,7 @@ const ManageUsers = () => {
       fetchUsers();
     } catch (error) {
       console.error("❌ Erreur basculement vérification:", error);
-      
+
       if (error.response?.status === 403) {
         toast.error("Vous n'avez pas les droits pour effectuer cette action");
       } else {
@@ -213,15 +197,10 @@ const ManageUsers = () => {
     setShowDeleteModal(true);
   };
 
-  const openPasswordModal = (userForPassword) => {
-    setSelectedUser(userForPassword);
-    setShowPasswordModal(true);
-  };
-
   const getRoleBadge = (role) => {
     const variants = {
       user: "secondary",
-      admin: "primary", 
+      admin: "primary",
       superAdmin: "danger"
     };
     const labels = {
@@ -413,9 +392,9 @@ const ManageUsers = () => {
                       <div className="d-flex align-items-center">
                         <div
                           className="rounded-circle text-white d-flex justify-content-center align-items-center me-3"
-                          style={{ 
-                            width: "40px", 
-                            height: "40px", 
+                          style={{
+                            width: "40px",
+                            height: "40px",
                             fontSize: "0.9rem",
                             backgroundColor: getAvatarColor(userItem.role),
                             fontWeight: "bold"
@@ -456,15 +435,7 @@ const ManageUsers = () => {
                               Modifier
                             </Dropdown.Item>
                           )}
-                          
-                          {/* Changer mot de passe */}
-                          {(user?.role === "admin" || user?.role === "superAdmin") && (
-                            <Dropdown.Item onClick={() => openPasswordModal(userItem)}>
-                              <i className="fas fa-key me-2 text-info"></i>
-                              Réinitialiser mot de passe
-                            </Dropdown.Item>
-                          )}
-                          
+
                           {/* Basculer vérification */}
                           {(user?.role === "admin" || user?.role === "superAdmin") && (
                             <Dropdown.Item onClick={() => handleToggleVerification(userItem._id)}>
@@ -472,7 +443,7 @@ const ManageUsers = () => {
                               {userItem.isVerified ? "Retirer vérification" : "Marquer vérifié"}
                             </Dropdown.Item>
                           )}
-                          
+
                           {/* Divider */}
                           {user?.role === "superAdmin" && userItem.role !== "superAdmin" && userItem._id !== user.id && (
                             <>
@@ -541,7 +512,7 @@ const ManageUsers = () => {
       <UserFormModal
         show={showCreateModal}
         onHide={() => setShowCreateModal(false)}
-        onSubmit={handleCreateUser}
+        onSubmit={handleCreateUser}  // ← Celui-ci est OK (1 paramètre)
         title="Créer un Nouvel Utilisateur"
         mode="create"
         currentUserRole={user?.role}
@@ -549,28 +520,18 @@ const ManageUsers = () => {
       />
 
       {/* Modal Modifier Utilisateur */}
+      {/* Modal Modifier Utilisateur */}
       <UserFormModal
         show={showEditModal}
         onHide={() => {
           setShowEditModal(false);
           setSelectedUser(null);
         }}
-        onSubmit={handleUpdateUser}
+        onSubmit={(userData) => handleUpdateUser(selectedUser._id, userData)}  // ← Changez cette ligne !
         title="Modifier l'Utilisateur"
         mode="edit"
         currentUserRole={user?.role}
         initialData={selectedUser}
-      />
-
-      {/* Modal Réinitialiser Mot de Passe */}
-      <AdminResetPasswordModal
-        show={showPasswordModal}
-        onHide={() => {
-          setShowPasswordModal(false);
-          setSelectedUser(null);
-        }}
-        onSubmit={handleResetPassword}
-        user={selectedUser}
       />
 
       {/* Modal Supprimer Utilisateur */}
@@ -590,9 +551,9 @@ const ManageUsers = () => {
           <div className="text-center mb-4">
             <div
               className="rounded-circle text-white d-flex justify-content-center align-items-center mx-auto mb-3"
-              style={{ 
-                width: "60px", 
-                height: "60px", 
+              style={{
+                width: "60px",
+                height: "60px",
                 fontSize: "1.5rem",
                 backgroundColor: getAvatarColor(selectedUser?.role),
                 fontWeight: "bold"

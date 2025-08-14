@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Spinner, Alert } from "react-bootstrap";
 import { useForm } from "react-hook-form";
@@ -26,6 +25,7 @@ const UserFormModal = ({
     reset,
     setValue,
     watch,
+    register, // ✅ Ajout de register
     formState: { errors, isSubmitting, isDirty, isValid },
     trigger
   } = useForm({
@@ -92,42 +92,60 @@ const UserFormModal = ({
   }, [show]);
 
   const onFormSubmit = async (data) => {
-    try {
-      setSubmitError("");
+  try {
+    setSubmitError("");
+    console.log("🔍 Données du formulaire:", data);
+    console.log("🔍 Données initiales:", initialData);
 
-      let preparedData;
+    let preparedData;
 
-      if (isEditMode) {
-        // Mode édition - préparer seulement les champs modifiés
-        preparedData = {};
+    if (isEditMode) {
+      // Mode édition - préparer seulement les champs modifiés
+      preparedData = {};
 
-        if (data.name !== initialData.name) preparedData.name = data.name;
-        if (data.email !== initialData.email) preparedData.email = data.email;
-        if (data.role !== initialData.role) preparedData.role = data.role;
-        if (data.isVerified !== initialData.isVerified) preparedData.isVerified = data.isVerified;
+      console.log("🔍 Comparaison role:", {
+        formRole: data.role,
+        initialRole: initialData.role,
+        different: data.role !== initialData.role
+      });
 
-        // Vérifier qu'il y a des modifications
-        if (Object.keys(preparedData).length === 0) {
-          setSubmitError("Aucune modification détectée");
-          return;
-        }
-      } else {
-        // Mode création - préparer toutes les données (sans confirmPassword)
-        const { confirmPassword, ...dataWithoutConfirm } = data;
-        preparedData = dataWithoutConfirm;
+      if (data.name !== initialData.name) preparedData.name = data.name;
+      if (data.email !== initialData.email) preparedData.email = data.email;
+      if (data.role !== initialData.role) preparedData.role = data.role;
+      if (data.isVerified !== initialData.isVerified) preparedData.isVerified = data.isVerified;
+
+      console.log("🔍 Données préparées:", preparedData);
+
+      // Vérifier qu'il y a des modifications
+      if (Object.keys(preparedData).length === 0) {
+        setSubmitError("Aucune modification détectée");
+        return;
       }
-
-      await onSubmit(preparedData);
-
-      // Si succès, le parent fermera le modal
-    } catch (error) {
-      console.error("Erreur lors de la soumission:", error);
-      setSubmitError(
-        error.response?.data?.message ||
-        "Une erreur est survenue lors de l'opération"
-      );
-    }
+    } else {
+  preparedData = {
+    name: data.name,
+    email: data.email,
+    password: data.password,
+    confirmPassword: data.confirmPassword, // ← Le serveur en a besoin pour valider
+    role: data.role,
+    isVerified: data.isVerified
   };
+}
+
+    // ✅ Log déplacé APRÈS la déclaration de preparedData
+    console.log("🔍 preparedData final:", preparedData);
+
+    await onSubmit(preparedData);
+
+    // Si succès, le parent fermera le modal
+  } catch (error) {
+    console.error("Erreur lors de la soumission:", error);
+    setSubmitError(
+      error.response?.data?.message ||
+      "Une erreur est survenue lors de l'opération"
+    );
+  }
+};
 
   const handleClose = () => {
     if (!isSubmitting) {
@@ -210,15 +228,102 @@ const UserFormModal = ({
             </div>
           )}
 
-          {/* Utilisation du composant UserForm existant */}
-          <UserForm
-            formData={watchedFields}
-            setFormData={setFormData}
-            isEditing={isEditMode}
-            currentUserRole={currentUserRole}
-            errors={formatErrors(errors)}
-            showPassword={!isEditMode} // Masquer le mot de passe en mode édition
-          />
+          {/* ✅ Champs corrigés avec register */}
+          <div>
+            <div className="mb-3">
+              <label className="form-label">Nom</label>
+              <input
+                type="text"
+                className="form-control"
+                {...register('name')}
+              />
+              {errors.name && (
+                <div className="text-danger small mt-1">
+                  {errors.name.message}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Email</label>
+              <input
+                type="email"
+                className="form-control"
+                {...register('email')}
+              />
+              {errors.email && (
+                <div className="text-danger small mt-1">
+                  {errors.email.message}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label">Rôle</label>
+              <select
+                className="form-select"
+                {...register('role')}
+              >
+                <option value="user">Utilisateur</option>
+                <option value="admin">Admin</option>
+                <option value="superAdmin">Super Admin</option>
+              </select>
+              {errors.role && (
+                <div className="text-danger small mt-1">
+                  {errors.role.message}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3">
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  {...register('isVerified')}
+                />
+                <label className="form-check-label">Compte vérifié</label>
+              </div>
+              {errors.isVerified && (
+                <div className="text-danger small mt-1">
+                  {errors.isVerified.message}
+                </div>
+              )}
+            </div>
+
+            {/* Champs de mot de passe pour la création uniquement */}
+            {!isEditMode && (
+              <>
+                <div className="mb-3">
+                  <label className="form-label">Mot de passe</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    {...register('password')}
+                  />
+                  {errors.password && (
+                    <div className="text-danger small mt-1">
+                      {errors.password.message}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Confirmer le mot de passe</label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    {...register('confirmPassword')}
+                  />
+                  {errors.confirmPassword && (
+                    <div className="text-danger small mt-1">
+                      {errors.confirmPassword.message}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Indicateur de modifications pour le mode édition */}
           {isEditMode && isDirty && (

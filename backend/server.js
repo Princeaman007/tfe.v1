@@ -23,6 +23,26 @@ connectDB(); // ✅ Connexion à MongoDB
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // ✅ Initialisation de Stripe
 const app = express();
 
+app.post("/api/payment/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error("❌ Erreur Webhook Stripe :", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Gérer l'événement Stripe
+  if (event.type === "checkout.session.completed") {
+    console.log("✅ Paiement confirmé :", event.data.object);
+    // Ici, tu peux mettre à jour la base de données pour marquer la commande comme payée
+  }
+
+  res.json({ received: true });
+});
+
 // ✅ Middleware pour gérer JSON et les cookies
 app.use(express.json());
 app.use(cookieParser());
@@ -81,26 +101,6 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "success", message: "Serveur en bonne santé 🚀" });
 });
 
-// ✅ Route pour gérer les Webhooks Stripe
-app.post("/api/payment/webhook", express.raw({ type: "application/json" }), async (req, res) => {
-  const sig = req.headers["stripe-signature"];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.error("❌ Erreur Webhook Stripe :", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  // Gérer l'événement Stripe
-  if (event.type === "checkout.session.completed") {
-    console.log("✅ Paiement confirmé :", event.data.object);
-    // Ici, tu peux mettre à jour la base de données pour marquer la commande comme payée
-  }
-
-  res.json({ received: true });
-});
 
 // ✅ Vérification automatique des livres en retard (Cron job)
 cron.schedule("0 0 * * *", async () => {
