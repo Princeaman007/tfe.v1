@@ -50,8 +50,14 @@ app.use(cookieParser());
 // ✅ Sécurisation des entêtes HTTP
 app.use(helmet());
 
-// ✅ Configuration de CORS avec plusieurs origines autorisées
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+// Dans server.js, remplacez cette partie :
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "http://localhost:5174",
+  "https://tfe-v1.onrender.com", 
+  "https://tfe-v1-front.onrender.com", 
+
+];
 
 app.use(
   cors({
