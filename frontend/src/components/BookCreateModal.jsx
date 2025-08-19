@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "../schemas/bookSchema";
 import axios from "axios";
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from '../../config.js';;
 
 const BookCreateModal = ({ show, onHide, onSubmit }) => {
   const [genres, setGenres] = useState([]);

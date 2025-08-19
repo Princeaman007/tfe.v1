@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { API_BASE_URL } from '../config.js'; 
+import { API_BASE_URL } from '../../config.js';; 
 const VerifyEmail = () => {
   const { token } = useParams(); // Get token from URL
   const navigate = useNavigate();

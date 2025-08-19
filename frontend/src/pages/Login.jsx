@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { Modal, Button, Alert, Spinner } from "react-bootstrap";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from '../../config.js';;
 
 const Login = () => {
   const navigate = useNavigate();

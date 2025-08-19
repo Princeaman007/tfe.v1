@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import CreateReview from "./CreateReview";
 import axios from "axios";
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from '../../config.js';;
 
 const BookReviews = ({ bookId, book }) => {
   const { user } = useAuth();

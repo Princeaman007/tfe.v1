@@ -10,7 +10,7 @@ import BookFilters from "../components/BookFilters";
 import BookTable from "../components/BookTable";
 import BookFormModal from "../components/BookFormModal";
 import BookDeleteModal from "../components/BookDeleteModal";
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from '../../config.js';;
 
 const ManageBooks = () => {
   const { user } = useAuth();

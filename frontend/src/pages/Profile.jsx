@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema } from "../schemas/userSchema";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import { API_BASE_URL } from '../config.js';  
+import { API_BASE_URL } from '../../config.js';;  
 
 const Profile = () => {
   const { user } = useAuth();

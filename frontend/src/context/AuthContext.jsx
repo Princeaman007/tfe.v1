@@ -1,8 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-// import { API_BASE_URL } from '../config.js';
-import { API_BASE_URL } from "../../config.js"; 
+import { API_BASE_URL } from '../../config.js';
 
 const AuthContext = createContext();
 

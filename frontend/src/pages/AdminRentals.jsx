@@ -10,7 +10,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { CSVLink } from "react-csv";
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from '../../config.js';;
 
 const AdminRentals = () => {
   const [rentals, setRentals] = useState([]);

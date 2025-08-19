@@ -7,7 +7,7 @@ import { Button, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { FaStar } from "react-icons/fa";
 import axios from "axios";
-import { API_BASE_URL } from '../config.js';
+import { API_BASE_URL } from '../../config.js';;
 
 const QuickRating = ({ bookId, currentRating = 0, onRatingChange, disabled = false }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);

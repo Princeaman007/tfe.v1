@@ -21,7 +21,7 @@ import {
 import { toast } from "react-toastify";
 import { FaStar, FaSyncAlt, FaBook, FaTrash, FaEdit, FaSearch, FaFilter } from "react-icons/fa";
 
-import { API_BASE_URL } from '../config.js'; 
+import { API_BASE_URL } from '../../config.js';; 
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
