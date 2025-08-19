@@ -1,11 +1,24 @@
 // src/schemas/rentalSchema.js
-import { z } from 'zod';
+import { z } from 'zod'; // ✅ Import manquant ajouté
 
 // Schéma de base pour ObjectId MongoDB
 const mongoIdSchema = z
   .string()
   .min(1, "ID obligatoire")
   .regex(/^[0-9a-fA-F]{24}$/, "ID doit être un ObjectId MongoDB valide");
+
+// ✅ Helper pour valider les dates datetime-local
+const datetimeLocalSchema = z
+  .string()
+  .min(1, "Date requise")
+  .refine(
+    (val) => {
+      // Accepter les formats datetime-local (YYYY-MM-DDTHH:MM) et ISO8601
+      const date = new Date(val);
+      return !isNaN(date.getTime());
+    },
+    { message: "Format de date invalide" }
+  );
 
 // === SCHÉMAS POUR CRÉATION DE LOCATION ===
 export const createRentalSchema = z.object({
@@ -72,18 +85,26 @@ export const updateRentalSchema = z.object({
     .optional()
 });
 
-// === SCHÉMAS POUR RETOUR DE LIVRE ===
+// ✅ SCHÉMA POUR RETOUR DE LIVRE (corrigé pour datetime-local)
 export const returnBookSchema = z.object({
-  returnedAt: z
-    .string()
-    .datetime("La date de retour doit être au format ISO8601 valide")
+  returnedAt: datetimeLocalSchema
     .optional()
-    .default(() => new Date().toISOString()),
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        return date <= new Date();
+      },
+      { message: "La date de retour ne peut pas être dans le futur" }
+    )
+    .transform((val) => val ? new Date(val).toISOString() : new Date().toISOString()),
 
   fineAmount: z
-    .coerce
-    .number()
-    .min(0, "Le montant de l'amende doit être un nombre positif ou nul")
+    .union([
+      z.string().transform((val) => parseFloat(val) || 0),
+      z.number()
+    ])
+    .pipe(z.number().min(0, "Le montant de l'amende doit être positif ou nul"))
     .optional()
 });
 
@@ -101,29 +122,48 @@ export const payFineSchema = z.object({
     .optional()
 });
 
-// === SCHÉMAS POUR RECHERCHE/FILTRAGE ===
+// ✅ SCHÉMA POUR RECHERCHE/FILTRAGE (corrigé)
 export const rentalSearchSchema = z.object({
   user: mongoIdSchema.optional(),
   book: mongoIdSchema.optional(),
 
   status: z
-    .enum(["borrowed", "returned"], 
-          { message: "Le statut doit être \"borrowed\" ou \"returned\"" })
+    .enum(["borrowed", "returned", ""], 
+          { message: "Le statut doit être \"borrowed\", \"returned\" ou vide" })
     .optional(),
 
   overdue: z
-    .boolean()
-    .optional(),
+    .enum(["true", "false", ""])
+    .optional()
+    .transform((val) => {
+      if (val === "true") return true;
+      if (val === "false") return false;
+      return undefined;
+    }),
 
   startDate: z
     .string()
-    .datetime("La date de début doit être au format ISO8601 valide")
-    .optional(),
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        return !isNaN(new Date(val).getTime());
+      },
+      { message: "Format de date invalide" }
+    )
+    .transform((val) => val ? new Date(val).toISOString() : undefined),
 
   endDate: z
     .string()
-    .datetime("La date de fin doit être au format ISO8601 valide")
-    .optional(),
+    .optional()
+    .refine(
+      (val) => {
+        if (!val) return true;
+        return !isNaN(new Date(val).getTime());
+      },
+      { message: "Format de date invalide" }
+    )
+    .transform((val) => val ? new Date(val).toISOString() : undefined),
 
   finePaid: z
     .boolean()
@@ -141,15 +181,27 @@ export const rentalSearchSchema = z.object({
   }
 );
 
-// === SCHÉMAS POUR EXTENSION DE DATE D'ÉCHÉANCE ===
+// ✅ SCHÉMA POUR EXTENSION DE DATE (corrigé pour datetime-local)
 export const extendDueDateSchema = z.object({
-  newDueDate: z
-    .string()
-    .datetime("La nouvelle date d'échéance doit être au format ISO8601 valide")
+  newDueDate: datetimeLocalSchema
     .refine(
-      (date) => new Date(date) > new Date(),
+      (val) => {
+        const date = new Date(val);
+        const now = new Date();
+        return date > now;
+      },
       { message: "La nouvelle date d'échéance doit être dans le futur" }
     )
+    .refine(
+      (val) => {
+        const date = new Date(val);
+        const maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear() + 1); // Maximum 1 an
+        return date <= maxDate;
+      },
+      { message: "L'extension ne peut pas dépasser 1 an" }
+    )
+    .transform((val) => new Date(val).toISOString())
 });
 
 // === SCHÉMAS POUR PAGINATION ===
@@ -285,4 +337,3 @@ export const rentalHistorySchema = z.object({
     path: ["endDate"]
   }
 );
-

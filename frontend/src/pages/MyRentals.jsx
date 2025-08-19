@@ -39,6 +39,76 @@ const MyRentals = () => {
   const [showExtendModal, setShowExtendModal] = useState(false);
   const [selectedRental, setSelectedRental] = useState(null);
 
+  // ✅ FONCTIONS UTILITAIRES
+  
+  // Calculer les jours restants avec gestion robuste
+  const calculateDaysRemaining = (dueDate, returnedAt = null) => {
+    try {
+      const due = new Date(dueDate);
+      const now = returnedAt ? new Date(returnedAt) : new Date();
+      
+      // Vérifier que les dates sont valides
+      if (isNaN(due.getTime()) || isNaN(now.getTime())) {
+        console.warn("Date invalide pour le calcul des jours restants:", { dueDate, returnedAt });
+        return 0;
+      }
+      
+      // Réinitialiser les heures pour comparer seulement les dates
+      due.setHours(23, 59, 59, 999);
+      now.setHours(0, 0, 0, 0);
+      
+      const diffTime = due.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays;
+    } catch (error) {
+      console.error("Erreur calcul jours restants:", error);
+      return 0;
+    }
+  };
+
+  // Obtenir les jours restants avec fallback
+  const getDaysRemaining = (rental) => {
+    // Priorité : daysRemaining du backend, sinon calcul frontend
+    if (rental.daysRemaining !== undefined && rental.daysRemaining !== null) {
+      return rental.daysRemaining;
+    }
+    return calculateDaysRemaining(rental.dueDate);
+  };
+
+  // Vérifier si en retard avec fallback
+  const isRentalOverdue = (rental) => {
+    if (rental.status === 'returned') return false;
+    if (rental.overdue !== undefined) return rental.overdue;
+    return getDaysRemaining(rental) < 0;
+  };
+
+  // Calcul d'amende robuste
+  const calculateFine = (rental, finePerDay = 1.5) => {
+    const daysRemaining = getDaysRemaining(rental);
+    if (daysRemaining >= 0) return 0;
+    return Math.abs(daysRemaining) * finePerDay;
+  };
+
+  // Formater date pour datetime-local
+  const formatDateForInput = (date) => {
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return '';
+      
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch (error) {
+      console.error("Erreur formatage date:", error);
+      return '';
+    }
+  };
+
   // Form pour le retour de livre
   const {
     register: registerReturn,
@@ -145,16 +215,18 @@ const MyRentals = () => {
     }
   };
 
+  // ✅ Submit retour corrigé
   const onReturnSubmit = async (data) => {
     try {
       console.log("📤 Retour de livre:", selectedRental._id, data);
 
+      // Le schéma Zod gère la transformation
       const response = await axios.post(
         "http://localhost:5000/api/rentals/return",
         {
           rentalId: selectedRental._id,
-          returnedAt: data.returnedAt || new Date().toISOString(),
-          fineAmount: data.fineAmount
+          returnedAt: data.returnedAt,
+          fineAmount: data.fineAmount || 0
         },
         {
           withCredentials: true,
@@ -165,7 +237,6 @@ const MyRentals = () => {
       console.log("✅ Livre retourné:", response.data);
       toast.success(response.data.message || "Livre retourné avec succès !");
 
-      // Fermer le modal et recharger
       setShowReturnModal(false);
       setSelectedRental(null);
       await fetchRentals();
@@ -175,7 +246,7 @@ const MyRentals = () => {
 
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
-        const errorMessages = validationErrors.map(err => err.msg).join(', ');
+        const errorMessages = validationErrors.map(err => err.msg || err.message).join(', ');
         toast.error(errorMessages);
       } else {
         toast.error(error.response?.data?.message || "Erreur lors du retour du livre");
@@ -183,15 +254,15 @@ const MyRentals = () => {
     }
   };
 
+  // ✅ Submit extension corrigé
   const onExtendSubmit = async (data) => {
     try {
       console.log("📅 Extension de date:", selectedRental._id, data);
 
+      // Le schéma Zod transforme déjà en ISO string
       const response = await axios.put(
         `http://localhost:5000/api/rentals/${selectedRental._id}/extend`,
-        {
-          newDueDate: data.newDueDate
-        },
+        { newDueDate: data.newDueDate },
         {
           withCredentials: true,
           timeout: 10000
@@ -201,17 +272,16 @@ const MyRentals = () => {
       console.log("✅ Date étendue:", response.data);
       toast.success("Date d'échéance prolongée avec succès !");
 
-      // Fermer le modal et recharger
       setShowExtendModal(false);
       setSelectedRental(null);
       await fetchRentals();
 
     } catch (error) {
       console.error("❌ Erreur extension date:", error);
-
+      
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
-        const errorMessages = validationErrors.map(err => err.msg).join(', ');
+        const errorMessages = validationErrors.map(err => err.msg || err.message).join(', ');
         toast.error(errorMessages);
       } else {
         toast.error(error.response?.data?.message || "Erreur lors de l'extension");
@@ -241,11 +311,13 @@ const MyRentals = () => {
     }
   };
 
+  // ✅ Modal de retour corrigé
   const openReturnModal = (rental) => {
     setSelectedRental(rental);
     setShowReturnModal(true);
   };
 
+  // ✅ Modal d'extension corrigé
   const openExtendModal = (rental) => {
     setSelectedRental(rental);
 
@@ -253,8 +325,17 @@ const MyRentals = () => {
     const currentDueDate = new Date(rental.dueDate);
     const newDueDate = new Date(currentDueDate);
     newDueDate.setDate(newDueDate.getDate() + 7);
+    
+    // S'assurer que la date est dans le futur
+    const now = new Date();
+    if (newDueDate <= now) {
+      newDueDate.setTime(now.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 jours à partir de maintenant
+    }
 
-    setExtendValue("newDueDate", newDueDate.toISOString().slice(0, 16));
+    // Format pour datetime-local
+    const formattedDate = formatDateForInput(newDueDate);
+    
+    setExtendValue("newDueDate", formattedDate);
     setShowExtendModal(true);
   };
 
@@ -276,30 +357,42 @@ const MyRentals = () => {
     setCurrentPage(1);
   };
 
+  // ✅ Badge de statut robuste
   const getStatusBadge = (rental) => {
     if (rental.status === 'returned') {
       return <Badge bg="success">Retourné</Badge>;
     }
 
-    if (rental.overdue || rental.daysRemaining < 0) {
+    const daysRemaining = getDaysRemaining(rental);
+    const overdue = isRentalOverdue(rental);
+
+    if (overdue || daysRemaining < 0) {
       return <Badge bg="danger">En retard</Badge>;
     }
 
-    if (rental.daysRemaining <= 3) {
+    if (daysRemaining <= 3) {
       return <Badge bg="warning" text="dark">Échéance proche</Badge>;
     }
 
     return <Badge bg="primary">En cours</Badge>;
   };
 
+  // ✅ Texte des jours restants robuste
   const getDaysRemainingText = (rental) => {
     if (rental.status === 'returned') return 'Retourné';
 
-    const days = rental.daysRemaining;
-    if (days < 0) return `${Math.abs(days)} jour(s) de retard`;
-    if (days === 0) return 'Échéance aujourd\'hui';
-    if (days === 1) return '1 jour restant';
-    return `${days} jours restants`;
+    const daysRemaining = getDaysRemaining(rental);
+    
+    if (daysRemaining < 0) {
+      return `${Math.abs(daysRemaining)} jour(s) de retard`;
+    }
+    if (daysRemaining === 0) {
+      return 'Échéance aujourd\'hui';
+    }
+    if (daysRemaining === 1) {
+      return '1 jour restant';
+    }
+    return `${daysRemaining} jours restants`;
   };
 
   const formatDate = (dateString) => {
@@ -556,10 +649,14 @@ const MyRentals = () => {
                               </small>
                             </div>
 
+                            {/* ✅ Affichage des jours restants corrigé */}
                             <div className="mb-3">
-                              <small className={`fw-bold ${rental.daysRemaining < 0 ? 'text-danger' :
-                                  rental.daysRemaining <= 3 ? 'text-warning' : 'text-success'
-                                }`}>
+                              <small className={`fw-bold ${(() => {
+                                const daysRemaining = getDaysRemaining(rental);
+                                if (daysRemaining < 0) return 'text-danger';
+                                if (daysRemaining <= 3) return 'text-warning';
+                                return 'text-success';
+                              })()}`}>
                                 <i className="fas fa-clock me-1"></i>
                                 {getDaysRemainingText(rental)}
                               </small>
@@ -584,6 +681,7 @@ const MyRentals = () => {
                               </div>
                             )}
 
+                            {/* ✅ Boutons d'action corrigés */}
                             <div className="d-flex gap-2 flex-wrap">
                               {rental.status === 'borrowed' && (
                                 <>
@@ -596,15 +694,15 @@ const MyRentals = () => {
                                     Retourner
                                   </Button>
 
-                                  <Button
+                                  {/* <Button
                                     size="sm"
                                     variant="info"
                                     onClick={() => openExtendModal(rental)}
-                                    disabled={rental.daysRemaining < -7} // Pas d'extension si trop en retard
+                                    disabled={getDaysRemaining(rental) < -7} 
                                   >
                                     <i className="fas fa-calendar-plus me-1"></i>
                                     Prolonger
-                                  </Button>
+                                  </Button> */}
                                 </>
                               )}
 
@@ -683,7 +781,7 @@ const MyRentals = () => {
         </Tab.Content>
       </Tab.Container>
 
-      {/* Modal de retour avec validation */}
+      {/* ✅ Modal de retour corrigé */}
       <Modal show={showReturnModal} onHide={() => setShowReturnModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -716,7 +814,8 @@ const MyRentals = () => {
                     {...registerReturn("returnedAt")}
                     isInvalid={!!returnErrors.returnedAt}
                     disabled={isReturning}
-                    defaultValue={new Date().toISOString().slice(0, 16)}
+                    defaultValue={formatDateForInput(new Date())}
+                    max={formatDateForInput(new Date())} // Empêcher dates futures
                   />
                   {returnErrors.returnedAt && (
                     <Form.Control.Feedback type="invalid">
@@ -728,11 +827,11 @@ const MyRentals = () => {
                   </Form.Text>
                 </Form.Group>
 
-                {selectedRental.daysRemaining < 0 && (
+                {getDaysRemaining(selectedRental) < 0 && (
                   <>
                     <Alert variant="warning">
                       <i className="fas fa-exclamation-triangle me-2"></i>
-                      <strong>Attention :</strong> Ce livre est en retard de {Math.abs(selectedRental.daysRemaining)} jour(s).
+                      <strong>Attention :</strong> Ce livre est en retard de {Math.abs(getDaysRemaining(selectedRental))} jour(s).
                     </Alert>
 
                     <Form.Group className="mb-3">
@@ -744,7 +843,7 @@ const MyRentals = () => {
                         {...registerReturn("fineAmount")}
                         isInvalid={!!returnErrors.fineAmount}
                         disabled={isReturning}
-                        defaultValue={(Math.abs(selectedRental.daysRemaining) * 1.5).toFixed(2)}
+                        defaultValue={calculateFine(selectedRental).toFixed(2)}
                       />
                       {returnErrors.fineAmount && (
                         <Form.Control.Feedback type="invalid">
@@ -752,7 +851,7 @@ const MyRentals = () => {
                         </Form.Control.Feedback>
                       )}
                       <Form.Text className="text-muted">
-                        Calculé automatiquement : {Math.abs(selectedRental.daysRemaining)} jour(s) × 1,50€
+                        Calculé automatiquement : {Math.abs(getDaysRemaining(selectedRental))} jour(s) × 1,50€
                       </Form.Text>
                     </Form.Group>
                   </>
@@ -796,7 +895,7 @@ const MyRentals = () => {
         </form>
       </Modal>
 
-      {/* Modal d'extension avec validation */}
+      {/* ✅ Modal d'extension corrigé */}
       <Modal show={showExtendModal} onHide={() => setShowExtendModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -832,6 +931,7 @@ const MyRentals = () => {
                     {...registerExtend("newDueDate")}
                     isInvalid={!!extendErrors.newDueDate}
                     disabled={isExtending}
+                    min={formatDateForInput(new Date())} // Empêcher les dates passées
                   />
                   {extendErrors.newDueDate && (
                     <Form.Control.Feedback type="invalid">
@@ -848,7 +948,7 @@ const MyRentals = () => {
                   <strong>Note :</strong> L'extension peut entraîner des frais supplémentaires selon les conditions de location.
                 </Alert>
 
-                {selectedRental.daysRemaining < -3 && (
+                {getDaysRemaining(selectedRental) < -3 && (
                   <Alert variant="warning">
                     <i className="fas fa-exclamation-triangle me-2"></i>
                     Ce livre est déjà en retard. L'extension peut ne pas être autorisée.
