@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import CreateReview from "./CreateReview";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const BookReviews = ({ bookId, book }) => {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ const BookReviews = ({ bookId, book }) => {
       setLoading(true);
       console.log("📖 Chargement des avis pour le livre:", bookId);
 
-      const response = await axios.get(`http://localhost:5000/api/reviews`, {
+      const response = await axios.get(`${API_BASE_URL}/api/reviews`, {
         params: {
           book: bookId,
           limit: 10,
@@ -65,7 +66,7 @@ const BookReviews = ({ bookId, book }) => {
     try {
       console.log("📊 Chargement statistiques avis pour:", bookId);
 
-      const response = await axios.get(`http://localhost:5000/api/reviews/stats/${bookId}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/reviews/stats/${bookId}`, {
         withCredentials: true,
         timeout: 5000
       });
@@ -137,7 +138,7 @@ const BookReviews = ({ bookId, book }) => {
 
   const handleReportReview = async (reviewId) => {
     try {
-      await axios.post(`http://localhost:5000/api/reviews/${reviewId}/report`, {
+      await axios.post(`${API_BASE_URL}/api/reviews/${reviewId}/report`, {
         reason: "inappropriate"
       }, {
         withCredentials: true

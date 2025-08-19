@@ -7,6 +7,7 @@ import { Button, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { FaStar } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const QuickRating = ({ bookId, currentRating = 0, onRatingChange, disabled = false }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,7 +31,7 @@ const QuickRating = ({ bookId, currentRating = 0, onRatingChange, disabled = fal
       console.log("⭐ Notation rapide:", data);
 
       const response = await axios.post(
-        "http://localhost:5000/api/reviews/quick-rating",
+        `${API_BASE_URL}/api/reviews/quick-rating`,
         {
           bookId: data.bookId,
           rating: data.rating

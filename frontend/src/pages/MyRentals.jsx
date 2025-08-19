@@ -11,6 +11,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from '../config.js'; 
 
 const MyRentals = () => {
   const { isAuthenticated, user } = useAuth();
@@ -170,7 +171,7 @@ const MyRentals = () => {
         }
       });
 
-      const response = await axios.get("http://localhost:5000/api/rentals", {
+      const response = await axios.get(`${API_BASE_URL}/api/rentals`, {
         params,
         withCredentials: true,
         timeout: 15000
@@ -222,7 +223,7 @@ const MyRentals = () => {
 
       // Le schéma Zod gère la transformation
       const response = await axios.post(
-        "http://localhost:5000/api/rentals/return",
+        `${API_BASE_URL}/api/rentals/return`,
         {
           rentalId: selectedRental._id,
           returnedAt: data.returnedAt,
@@ -261,7 +262,7 @@ const MyRentals = () => {
 
       // Le schéma Zod transforme déjà en ISO string
       const response = await axios.put(
-        `http://localhost:5000/api/rentals/${selectedRental._id}/extend`,
+        `${API_BASE_URL}/api/rentals/${selectedRental._id}/extend`,
         { newDueDate: data.newDueDate },
         {
           withCredentials: true,
@@ -294,7 +295,7 @@ const MyRentals = () => {
       console.log("💳 Paiement amende pour:", rentalId);
 
       const response = await axios.post(
-        "http://localhost:5000/api/payment/pay-fine",
+        `${API_BASE_URL}/api/payment/pay-fine`,
         { rentalId },
         { withCredentials: true }
       );

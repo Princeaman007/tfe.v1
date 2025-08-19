@@ -7,6 +7,7 @@ import {
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import UserFormModal from "../components/UserForm";
+import { API_BASE_URL } from '../config.js';
 
 const ManageUsers = () => {
   const { user } = useAuth();
@@ -41,7 +42,7 @@ const ManageUsers = () => {
         role: roleFilter
       });
 
-      const response = await axios.get("http://localhost:5000/api/users", {
+      const response = await axios.get(`${API_BASE_URL}/api/users`, {
         params: {
           page: currentPage,
           limit: 10,
@@ -74,7 +75,7 @@ const ManageUsers = () => {
     try {
       console.log('📊 Récupération statistiques...');
 
-      const response = await axios.get("http://localhost:5000/api/users/stats", {
+      const response = await axios.get(`${API_BASE_URL}/api/users/stats`, {
         withCredentials: true
       });
 
@@ -94,7 +95,7 @@ const ManageUsers = () => {
     console.log("📤 Création utilisateur - userData:", userData);
     console.log("📤 Création utilisateur - JSON:", JSON.stringify(userData));
     
-    await axios.post("http://localhost:5000/api/users", userData, {
+    await axios.post(`${API_BASE_URL}/api/users`, userData, {
       withCredentials: true,
       headers: {
         'Content-Type': 'application/json'
@@ -121,7 +122,7 @@ const ManageUsers = () => {
       console.log("📝 AVANT envoi - JSON:", JSON.stringify(userData));
 
       // ✅ FORCEZ le Content-Type
-      const response = await axios.put(`http://localhost:5000/api/users/${userId}`, userData, {
+      const response = await axios.put(`${API_BASE_URL}/api/users/${userId}`, userData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'  // ← Ajoutez ceci
@@ -146,7 +147,7 @@ const ManageUsers = () => {
     try {
       console.log("🗑️ Suppression utilisateur:", selectedUser._id);
 
-      await axios.delete(`http://localhost:5000/api/users/${selectedUser._id}`, {
+      await axios.delete(`${API_BASE_URL}/api/users/${selectedUser._id}`, {
         withCredentials: true
       });
 
@@ -170,7 +171,7 @@ const ManageUsers = () => {
     try {
       console.log("🔄 Basculement vérification pour:", userId);
 
-      await axios.patch(`http://localhost:5000/api/users/${userId}/verify`, {}, {
+      await axios.patch(`${API_BASE_URL}/api/users/${userId}/verify`, {}, {
         withCredentials: true
       });
 

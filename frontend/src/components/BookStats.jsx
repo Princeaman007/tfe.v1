@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const BookStats = () => {
   const [stats, setStats] = useState({
@@ -17,7 +18,7 @@ const BookStats = () => {
         
       try {
         console.log("📦 stats:", stats);
-        const res = await axios.get("http://localhost:5000/api/books/stats", {
+        const res = await axios.get(`${API_BASE_URL}/api/books/stats`, {
           withCredentials: true,
         });
         setStats(res.data);

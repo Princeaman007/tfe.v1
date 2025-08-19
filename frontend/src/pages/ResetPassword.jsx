@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { confirmResetPasswordSchema } from "../schemas/userSchema";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { API_BASE_URL } from '../config.js';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -79,7 +80,7 @@ const ResetPassword = () => {
       console.log('🔑 Token:', token ? token.substring(0, 20) + '...' : 'undefined');
 
       const response = await axios.put(
-        `http://localhost:5000/api/auth/reset-password/${token}`, 
+        `${API_BASE_URL}/api/auth/reset-password/${token}`, 
         {
           newPassword: data.newPassword,
           confirmNewPassword: data.confirmNewPassword

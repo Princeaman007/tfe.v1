@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { changePasswordSchema } from "../schemas/userSchema";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';  
 
 const Profile = () => {
   const { user } = useAuth();
@@ -93,7 +94,7 @@ const Profile = () => {
       console.log("Changement de mot de passe...");
 
       const response = await axios.put(
-        "http://localhost:5000/api/users/change-password",
+        `${API_BASE_URL}/api/users/change-password`,
         {
           currentPassword: data.currentPassword,
           newPassword: data.newPassword,

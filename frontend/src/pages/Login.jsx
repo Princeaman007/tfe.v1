@@ -8,6 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import { Modal, Button, Alert, Spinner } from "react-bootstrap";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { API_BASE_URL } from '../config.js';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -109,7 +110,7 @@ const Login = () => {
       console.log("📧 Demande de réinitialisation pour:", data.email);
       
       const response = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password", 
+        `${API_BASE_URL}/api/auth/forgot-password`, 
         data,
         {
           headers: { 'Content-Type': 'application/json' }

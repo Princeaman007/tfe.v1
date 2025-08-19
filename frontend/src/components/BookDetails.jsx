@@ -7,7 +7,7 @@ import {
 } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-
+import { API_BASE_URL } from '../config.js'; 
 const getInitials = (name) => {
   if (!name) return "?";
   return name
@@ -42,7 +42,7 @@ const BookDetails = () => {
   const fetchBook = async () => {
     try {
       console.log("📦 ID reçu depuis l'URL :", id);
-      const res = await axios.get(`http://localhost:5000/api/books/${id}`);
+      const res = await axios.get(`${API_BASE_URL}/api/books/${id}`);
       console.log("✅ Réponse backend :", res.data);
       setBook(res.data);
     } catch (err) {
@@ -55,7 +55,7 @@ const BookDetails = () => {
 
   const fetchReviews = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/reviews/${id}`);
+      const res = await axios.get(`${API_BASE_URL}/api/reviews/${id}`);
       setReviews(res.data);
     } catch (err) {
       console.error("Erreur en récupérant les avis :", err);
@@ -64,7 +64,7 @@ const BookDetails = () => {
 
   const checkFavoriteStatus = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/favorites/check/${id}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/favorites/check/${id}`, {
         withCredentials: true
       });
       setIsFavorited(res.data.isFavorite);
@@ -80,7 +80,7 @@ const BookDetails = () => {
     }
     
     try {
-      await axios.post(`http://localhost:5000/api/books/${id}/like`, {}, { withCredentials: true });
+      await axios.post(`${API_BASE_URL}/api/books/${id}/like`, {}, { withCredentials: true });
       fetchBook();
       toast.success("Like mis à jour!");
     } catch (err) {
@@ -97,7 +97,7 @@ const BookDetails = () => {
 
     setFavoriteLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/api/favorites/toggle", 
+      const res = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
         { bookId: book._id }, 
         { withCredentials: true }
       );
@@ -133,7 +133,7 @@ const BookDetails = () => {
   
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/payment/create-checkout-session",
+        `${API_BASE_URL}/api/payment/create-checkout-session`,
         { bookId: book._id },
         { withCredentials: true }
       );
@@ -164,7 +164,7 @@ const BookDetails = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/reviews",
+        `${API_BASE_URL}/api/reviews`,
         {
           bookId: id,
           rating,

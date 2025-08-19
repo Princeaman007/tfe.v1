@@ -10,6 +10,7 @@ import BookFilters from "../components/BookFilters";
 import BookTable from "../components/BookTable";
 import BookFormModal from "../components/BookFormModal";
 import BookDeleteModal from "../components/BookDeleteModal";
+import { API_BASE_URL } from '../config.js';
 
 const ManageBooks = () => {
   const { user } = useAuth();
@@ -52,7 +53,7 @@ const ManageBooks = () => {
         sortOrder
       });
 
-      const response = await axios.get("http://localhost:5000/api/books", {
+      const response = await axios.get(`${API_BASE_URL}/api/books`, {
         params: {
           page: currentPage,
           limit: 10,
@@ -96,7 +97,7 @@ const ManageBooks = () => {
     try {
       console.log("🏷️ Chargement des genres...");
 
-      const response = await axios.get("http://localhost:5000/api/books/genres", {
+      const response = await axios.get(`${API_BASE_URL}/api/books/genres`, {
         withCredentials: true,
         timeout: 10000,
       });
@@ -128,7 +129,7 @@ const ManageBooks = () => {
     try {
       console.log("📝 Création livre avec données:", { ...data, password: data.password ? '***' : undefined });
 
-      const response = await axios.post("http://localhost:5000/api/books", data, {
+      const response = await axios.post(`${API_BASE_URL}/api/books`, data, {
         withCredentials: true,
         timeout: 10000,
         headers: {
@@ -156,7 +157,7 @@ const ManageBooks = () => {
     try {
       console.log("📝 Modification livre ID:", bookId, "avec données:", data);
 
-      const response = await axios.put(`http://localhost:5000/api/books/${bookId}`, data, {
+      const response = await axios.put(`${API_BASE_URL}/api/books/${bookId}`, data, {
         withCredentials: true,
         timeout: 10000,
         headers: {
@@ -194,7 +195,7 @@ const ManageBooks = () => {
         throw new Error("ID du livre manquant");
       }
 
-      const response = await axios.delete(`http://localhost:5000/api/books/${bookId}`, {
+      const response = await axios.delete(`${API_BASE_URL}/api/books/${bookId}`, {
         withCredentials: true,
         timeout: 15000, // Plus de temps pour la suppression
       });

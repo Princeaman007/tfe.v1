@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { userRegisterSchema } from "../schemas/userSchema";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { API_BASE_URL } from '../config.js';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ const Register = () => {
       });
 
       const response = await axios.post(
-        "http://localhost:5000/api/auth/register", 
+        `${API_BASE_URL}/api/auth/register`, 
         cleanedData,
         {
           headers: {

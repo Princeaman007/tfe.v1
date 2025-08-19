@@ -7,6 +7,7 @@ import { bookCreateSchema } from "../schemas/bookSchema";
 import { Container, Row, Col, Card, Button, Alert, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const AddBook = () => {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ const AddBook = () => {
     const fetchGenres = async () => {
       try {
         setLoadingGenres(true);
-        const response = await axios.get("http://localhost:5000/api/books/genres", {
+        const response = await axios.get(`${API_BASE_URL}/api/books/genres`, {
           withCredentials: true,
         });
 
@@ -88,7 +89,7 @@ const AddBook = () => {
       console.log("📋 Données envoyées:", bookData);
 
       const response = await axios.post(
-        "http://localhost:5000/api/books", 
+        `http://localhost:5000/api/books`, 
         bookData, 
         {
           withCredentials: true,

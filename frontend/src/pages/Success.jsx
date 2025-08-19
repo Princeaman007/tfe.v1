@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import { Container, Spinner, Alert, Button, Card } from "react-bootstrap";
-
+import { API_BASE_URL } from '../config.js';
 const Success = () => {
   const [searchParams] = useSearchParams();
   const [sessionInfo, setSessionInfo] = useState(null);
@@ -20,7 +20,7 @@ const Success = () => {
       }
 
       try {
-        const res = await axios.post("http://localhost:5000/api/payment/verify-payment", {
+        const res = await axios.post(`${API_BASE_URL}/api/payment/verify-payment`, {
           sessionId,
         });
         console.log("✅ Réponse backend :", res.data);

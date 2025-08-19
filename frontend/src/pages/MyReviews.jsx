@@ -21,6 +21,8 @@ import {
 import { toast } from "react-toastify";
 import { FaStar, FaSyncAlt, FaBook, FaTrash, FaEdit, FaSearch, FaFilter } from "react-icons/fa";
 
+import { API_BASE_URL } from '../config.js'; 
+
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,7 @@ const ReviewList = () => {
         params.rating = ratingFilter;
       }
 
-      const response = await axios.get("http://localhost:5000/api/reviews/me", {
+      const response = await axios.get(`${API_BASE_URL}/api/reviews/me`, {
         params,
         withCredentials: true,
         timeout: 10000
@@ -118,7 +120,7 @@ const ReviewList = () => {
       console.log("🗑️ Suppression avis:", selectedReviewId);
       
       await axios.delete(
-        `http://localhost:5000/api/reviews/${selectedReviewId}`,
+        `${API_BASE_URL}/api/reviews/${selectedReviewId}`,
         { 
           withCredentials: true,
           timeout: 10000
@@ -175,7 +177,7 @@ const ReviewList = () => {
       }
 
       await axios.put(
-        `http://localhost:5000/api/reviews/${selectedReview._id}`,
+        `${API_BASE_URL}/api/reviews/${selectedReview._id}`,
         updateData,
         { 
           withCredentials: true,

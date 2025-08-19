@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const AuthContext = createContext();
 
@@ -16,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🔍 Vérification du token...");
       
-      const response = await axios.get("http://localhost:5000/api/auth/verify", {
+      const response = await axios.get(`${API_BASE_URL}/api/auth/verify`, {
         withCredentials: true,
       });
 
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🔐 Tentative de connexion...");
       
-      const response = await axios.post("http://localhost:5000/api/auth/login", credentials, {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/login`, credentials, {
         withCredentials: true,
       });
 
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log("🚪 Déconnexion en cours...");
       
-      await axios.post("http://localhost:5000/api/auth/logout", {}, { 
+      await axios.post(`${API_BASE_URL}/api/auth/logout`, {}, { 
         withCredentials: true 
       });
 

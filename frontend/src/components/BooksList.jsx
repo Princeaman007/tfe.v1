@@ -7,6 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from '../config.js';
 
 const BooksList = () => {
   const { isAuthenticated } = useAuth();
@@ -33,7 +34,7 @@ const BooksList = () => {
   const fetchBooks = async (pageNumber = 1, reset = false) => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:5000/api/books", {
+      const response = await axios.get(`${API_BASE_URL}/api/books`, {
         params: { page: pageNumber, limit: 8, search, genre, sortByPrice },
       });
       const { books: fetchedBooks, totalPages: serverTotalPages } = response.data;
@@ -49,7 +50,7 @@ const BooksList = () => {
 
   const checkFavoriteStatus = async (bookId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/favorites/check/${bookId}`, {
+      const res = await axios.get(`${API_BASE_URL}/api/favorites/check/${bookId}`, {
         withCredentials: true
       });
       return res.data.isFavorite;
@@ -62,7 +63,7 @@ const BooksList = () => {
   const fetchUserFavorites = async () => {
     try {
       console.log(" Récupération des favoris...");
-      const res = await axios.get("http://localhost:5000/api/favorites", {
+      const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
         withCredentials: true
       });
       
@@ -106,7 +107,7 @@ const BooksList = () => {
       return;
     }
     try {
-      await axios.post(`http://localhost:5000/api/books/${bookId}/like`, {}, { withCredentials: true });
+      await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { withCredentials: true });
       fetchBooks(page, true);
       toast.success("Like mis à jour!");
     } catch (error) {
@@ -128,7 +129,7 @@ const BooksList = () => {
       console.log("🔍 Toggle favori pour bookId:", bookId);
       
       // 1. Toggle favori
-      const favoriteRes = await axios.post("http://localhost:5000/api/favorites/toggle", 
+      const favoriteRes = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
         { bookId }, 
         { withCredentials: true }
       );
@@ -136,7 +137,7 @@ const BooksList = () => {
       console.log("✅ Réponse toggle favori:", favoriteRes.data);
 
       // 2. Like automatique en même temps
-      await axios.post(`http://localhost:5000/api/books/${bookId}/like`, {}, { 
+      await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { 
         withCredentials: true 
       });
       
@@ -182,7 +183,7 @@ const BooksList = () => {
     }
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/payment/create-checkout-session",
+        `${API_BASE_URL}/api/payment/create-checkout-session`,
         { bookId },
         { withCredentials: true }
       );

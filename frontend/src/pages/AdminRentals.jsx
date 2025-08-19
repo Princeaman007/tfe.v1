@@ -10,6 +10,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { CSVLink } from "react-csv";
+import { API_BASE_URL } from '../config.js';
 
 const AdminRentals = () => {
   const [rentals, setRentals] = useState([]);
@@ -21,7 +22,7 @@ const AdminRentals = () => {
   const fetchRentals = async (page = 1) => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:5000/api/rentals/admin/all`, {
+      const res = await axios.get(`${API_BASE_URL}/api/rentals/admin/all`, {
         params: { page, limit: 10 },
         withCredentials: true,
       });

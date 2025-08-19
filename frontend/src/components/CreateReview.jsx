@@ -7,6 +7,7 @@ import { Modal, Button, Form, Alert, Spinner, Card } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { FaStar, FaBook } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
   const [submitError, setSubmitError] = useState("");
@@ -57,7 +58,7 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
       console.log("📝 Création d'un nouvel avis...", data);
 
       const response = await axios.post(
-        "http://localhost:5000/api/reviews",
+        `${API_BASE_URL}/api/reviews`,
         {
           bookId: data.bookId,
           rating: Number(data.rating),

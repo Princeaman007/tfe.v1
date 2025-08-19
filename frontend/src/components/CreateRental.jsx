@@ -7,6 +7,7 @@ import { Modal, Button, Form, Alert, Spinner, Card, Badge } from "react-bootstra
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
   const { user } = useAuth();
@@ -79,7 +80,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
       };
 
       const response = await axios.post(
-        "http://localhost:5000/api/rentals",
+        `${API_BASE_URL}/api/rentals`,
         rentalData,
         {
           withCredentials: true,

@@ -3,6 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const Analytics = () => {
   const [data, setData] = useState([]);
@@ -10,7 +11,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/rentals/admin/monthly", {
+        const res = await axios.get(`${API_BASE_URL}/api/rentals/admin/monthly`, {
           withCredentials: true,
         });
         setData(res.data);

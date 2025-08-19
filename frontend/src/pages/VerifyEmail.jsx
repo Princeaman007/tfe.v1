@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-
+import { API_BASE_URL } from '../config.js'; 
 const VerifyEmail = () => {
   const { token } = useParams(); // Get token from URL
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const VerifyEmail = () => {
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/auth/verify-email/${token}`);
+        const response = await axios.get(`${API_BASE_URL}/api/auth/verify-email/${token}`);
         setMessage(response.data.message);
 
         // Redirect to login after 3 seconds

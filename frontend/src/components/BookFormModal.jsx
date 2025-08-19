@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema, bookUpdateSchema } from "../schemas/bookSchema";
 import axios from "axios";
+import { API_BASE_URL } from '../config.js';
 
 const BookFormModal = ({ 
   show, 
@@ -51,7 +52,7 @@ const BookFormModal = ({
     const fetchGenres = async () => {
       try {
         setLoadingGenres(true);
-        const res = await axios.get("http://localhost:5000/api/books/genres", {
+        const res = await axios.get(`${API_BASE_URL}/api/books/genres`, {
           withCredentials: true,
         });
 

@@ -13,6 +13,7 @@ import {
   Form,
 } from "react-bootstrap";
 import { FaStar, FaSyncAlt, FaBook, FaEdit, FaTrash } from "react-icons/fa";
+import { API_BASE_URL } from '../config.js';
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
@@ -29,7 +30,7 @@ const ReviewList = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:5000/api/reviews/me", {
+      const res = await axios.get(`${API_BASE_URL}/api/reviews/me`, {
         withCredentials: true,
       });
       setReviews(res.data);
@@ -43,7 +44,7 @@ const ReviewList = () => {
   const handleDelete = async (reviewId) => {
     if (!window.confirm("Supprimer cet avis ?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/reviews/${reviewId}`, {
+      await axios.delete(`${API_BASE_URL}/api/reviews/${reviewId}`, {
         withCredentials: true,
       });
       fetchReviews();
@@ -70,7 +71,7 @@ const ReviewList = () => {
     });
 
     const res = await axios.put(
-      `http://localhost:5000/api/reviews/${selectedReview._id}`,
+      `${API_BASE_URL}/api/reviews/${selectedReview._id}`,
       {
         rating: editRating,
         comment: editComment,

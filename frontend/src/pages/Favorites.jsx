@@ -5,6 +5,7 @@ import { Container, Row, Col, Card, Spinner, Alert, Button, Badge } from "react-
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import { API_BASE_URL } from '../config.js';
 
 const Favorites = () => {
   const { isAuthenticated } = useAuth();
@@ -26,7 +27,7 @@ const Favorites = () => {
 
   const fetchFavorites = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/favorites", {
+      const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
         withCredentials: true,
       });
       console.log("✅ Favoris récupérés:", res.data);
@@ -49,7 +50,7 @@ const Favorites = () => {
 
   const handleRemoveFromFavorites = async (bookId) => {
     try {
-      await axios.post("http://localhost:5000/api/favorites/toggle", 
+      await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
         { bookId }, 
         { withCredentials: true }
       );
@@ -72,7 +73,7 @@ const Favorites = () => {
   const handleRentBook = async (bookId) => {
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/payment/create-checkout-session",
+        `${API_BASE_URL}/api/payment/create-checkout-session`,
         { bookId },
         { withCredentials: true }
       );
