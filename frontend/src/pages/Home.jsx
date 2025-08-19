@@ -30,9 +30,16 @@ const Home = () => {
           </Link>
           <Link
             to="/register"
-            className="btn btn-outline-primary btn-lg px-5 shadow-sm"
+            className="btn btn-outline-primary btn-lg px-5 me-3 shadow-sm"
           >
             S'inscrire
+          </Link>
+          <Link
+            to="/contact"
+            className="btn btn-outline-secondary btn-lg px-4 shadow-sm"
+          >
+            <i className="fas fa-envelope me-2"></i>
+            Contactez notre équipe
           </Link>
         </div>
       </div>

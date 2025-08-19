@@ -21,6 +21,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Success from "./pages/Success";
+import Contact from "./pages/Contact";
 
 // 📚 Catalogue livres (public)
 import BooksList from "./components/BooksList";
@@ -55,6 +56,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/success" element={<Success />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* 📚 Catalogue de livres (accessible à tous, sans Layout) */}
           <Route path="/books" element={<BooksList />} />
