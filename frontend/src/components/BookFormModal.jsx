@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema, bookUpdateSchema } from "../schemas/bookSchema";
 import axios from "axios";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const BookFormModal = ({ 
   show, 
@@ -13,8 +14,9 @@ const BookFormModal = ({
   onSubmit, 
   initialData = null, 
   title,
-  mode = "create" // "create" ou "edit"
+  mode = "create" 
 }) => {
+  const { getAuthHeaders } = useAuth();
   const [genres, setGenres] = useState([]);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -53,9 +55,8 @@ const BookFormModal = ({
       try {
         setLoadingGenres(true);
         const res = await axios.get(`${API_BASE_URL}/api/books/genres`, {
-          withCredentials: true,
-        });
-
+  headers: getAuthHeaders()
+});
         let genresList = [];
         if (Array.isArray(res.data.genres)) {
           genresList = res.data.genres;

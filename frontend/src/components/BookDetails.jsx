@@ -7,7 +7,8 @@ import {
 } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from '../../config.js';; 
+import { API_BASE_URL } from "../../config.js";
+import { useAuth } from "../context/AuthContext";
 const getInitials = (name) => {
   if (!name) return "?";
   return name
@@ -19,6 +20,7 @@ const getInitials = (name) => {
 
 const BookDetails = () => {
   const { id } = useParams();
+  const { isAuthenticated, getAuthHeaders } = useAuth();
   const { isAuthenticated } = useAuth();
 
   const [book, setBook] = useState(null);
@@ -65,8 +67,8 @@ const BookDetails = () => {
   const checkFavoriteStatus = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/favorites/check/${id}`, {
-        withCredentials: true
-      });
+  headers: getAuthHeaders()
+});
       setIsFavorited(res.data.isFavorite);
     } catch (err) {
       console.error("Erreur lors de la vérification du statut favori:", err);
@@ -79,8 +81,8 @@ const BookDetails = () => {
       return;
     }
     
-    try {
-      await axios.post(`${API_BASE_URL}/api/books/${id}/like`, {}, { withCredentials: true });
+    try {post(`${API_BASE_URL}/api/books/${id}/like`, {}, { headers: getAuthHeaders()});
+      await axios.
       fetchBook();
       toast.success("Like mis à jour!");
     } catch (err) {
@@ -96,11 +98,10 @@ const BookDetails = () => {
     }
 
     setFavoriteLoading(true);
-    try {
-      const res = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
-        { bookId: book._id }, 
-        { withCredentials: true }
-      );
+    const res = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
+  { bookId: book._id }, 
+  { headers: getAuthHeaders() }
+);
       
       setIsFavorited(res.data.isFavorite);
       toast.success(res.data.message, {
@@ -132,11 +133,11 @@ const BookDetails = () => {
     }
   
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/payment/create-checkout-session`,
-        { bookId: book._id },
-        { withCredentials: true }
-      );
+    const res = await axios.post(
+  `${API_BASE_URL}/api/payment/create-checkout-session`,
+  { bookId: book._id },
+  { headers: getAuthHeaders() }
+);
   
       const { url } = res.data;
       if (url) {
@@ -163,15 +164,15 @@ const BookDetails = () => {
     }
 
     try {
-      await axios.post(
-        `${API_BASE_URL}/api/reviews`,
-        {
-          bookId: id,
-          rating,
-          comment: commentInput,
-        },
-        { withCredentials: true }
-      );
+     await axios.post(
+  `${API_BASE_URL}/api/reviews`,
+  {
+    bookId: id,
+    rating,
+    comment: commentInput,
+  },
+  { headers: getAuthHeaders() }
+);
 
       setCommentInput("");
       setRating(5);

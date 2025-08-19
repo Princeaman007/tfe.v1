@@ -7,7 +7,7 @@ import {
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import UserFormModal from "../components/UserForm";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 
 const ManageUsers = () => {
   const { user } = useAuth();

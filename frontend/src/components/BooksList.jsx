@@ -7,9 +7,10 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 
 const BooksList = () => {
+   const { isAuthenticated, getAuthHeaders } = useAuth();
   const { isAuthenticated } = useAuth();
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(1);
@@ -34,9 +35,9 @@ const BooksList = () => {
   const fetchBooks = async (pageNumber = 1, reset = false) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/books`, {
-        params: { page: pageNumber, limit: 8, search, genre, sortByPrice },
-      });
+     const response = await axios.get(`${API_BASE_URL}/api/books`, {
+  params: { page: pageNumber, limit: 8, search, genre, sortByPrice },
+});
       const { books: fetchedBooks, totalPages: serverTotalPages } = response.data;
       setBooks(reset ? fetchedBooks : [...books, ...fetchedBooks]);
       setTotalPages(serverTotalPages || 1);
@@ -51,8 +52,8 @@ const BooksList = () => {
   const checkFavoriteStatus = async (bookId) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/favorites/check/${bookId}`, {
-        withCredentials: true
-      });
+  headers: getAuthHeaders()
+});
       return res.data.isFavorite;
     } catch (err) {
       console.error("Erreur lors de la vérification du statut favori:", err);
@@ -64,8 +65,8 @@ const BooksList = () => {
     try {
       console.log(" Récupération des favoris...");
       const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
-        withCredentials: true
-      });
+  headers: getAuthHeaders()
+});
       
       console.log(" Réponse favoris:", res.data);
       
@@ -107,7 +108,9 @@ const BooksList = () => {
       return;
     }
     try {
-      await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { withCredentials: true });
+      await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { 
+  headers: getAuthHeaders() 
+});
       fetchBooks(page, true);
       toast.success("Like mis à jour!");
     } catch (error) {
@@ -130,16 +133,16 @@ const BooksList = () => {
       
       // 1. Toggle favori
       const favoriteRes = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
-        { bookId }, 
-        { withCredentials: true }
-      );
+  { bookId }, 
+  { headers: getAuthHeaders() }
+);
       
       console.log("✅ Réponse toggle favori:", favoriteRes.data);
 
       // 2. Like automatique en même temps
       await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { 
-        withCredentials: true 
-      });
+  headers: getAuthHeaders() 
+});
       
       console.log("✅ Like automatique appliqué");
 
@@ -182,11 +185,11 @@ const BooksList = () => {
       return;
     }
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/payment/create-checkout-session`,
-        { bookId },
-        { withCredentials: true }
-      );
+     const res = await axios.post(
+  `${API_BASE_URL}/api/payment/create-checkout-session`,
+  { bookId },
+  { headers: getAuthHeaders() }
+);
       const { url } = res.data;
       window.location.href = url;
     } catch (err) {

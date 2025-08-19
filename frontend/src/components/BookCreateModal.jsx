@@ -5,9 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookCreateSchema } from "../schemas/bookSchema";
 import axios from "axios";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const BookCreateModal = ({ show, onHide, onSubmit }) => {
+  const { getAuthHeaders } = useAuth();
   const [genres, setGenres] = useState([]);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -41,7 +43,7 @@ const BookCreateModal = ({ show, onHide, onSubmit }) => {
       try {
         setLoadingGenres(true);
         const res = await axios.get(`${API_BASE_URL}/api/books/genres`, {
-          withCredentials: true,
+         headers: getAuthHeaders()
         });
         setGenres(res.data);
       } catch (err) {

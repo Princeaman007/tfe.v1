@@ -5,9 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { bookUpdateSchema } from "../schemas/bookSchema";
 import axios from "axios";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const BookEditModal = ({ show, onHide, onSubmit, book }) => {
+  const { getAuthHeaders } = useAuth();
   const [genres, setGenres] = useState([]);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -43,8 +45,8 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
       try {
         setLoadingGenres(true);
         const res = await axios.get(`${API_BASE_URL}/api/books/genres`, {
-          withCredentials: true,
-        });
+  headers: getAuthHeaders()
+});
         setGenres(res.data);
       } catch (error) {
         console.error("Erreur lors de la récupération des genres:", error);

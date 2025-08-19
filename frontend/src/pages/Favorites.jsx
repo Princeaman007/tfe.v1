@@ -5,7 +5,7 @@ import { Container, Row, Col, Card, Spinner, Alert, Button, Badge } from "react-
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 
 const Favorites = () => {
   const { isAuthenticated } = useAuth();

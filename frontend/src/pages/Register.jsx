@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { userRegisterSchema } from "../schemas/userSchema";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 
 const Register = () => {
   const navigate = useNavigate();

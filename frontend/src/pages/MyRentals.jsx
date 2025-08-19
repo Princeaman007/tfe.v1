@@ -11,7 +11,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from '../../config.js';; 
+import { API_BASE_URL } from "../../config.js"; 
 
 const MyRentals = () => {
   const { isAuthenticated, user } = useAuth();

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import { Container, Spinner, Alert, Button, Card } from "react-bootstrap";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 const Success = () => {
   const [searchParams] = useSearchParams();
   const [sessionInfo, setSessionInfo] = useState(null);

@@ -7,7 +7,7 @@ import { bookCreateSchema } from "../schemas/bookSchema";
 import { Container, Row, Col, Card, Button, Alert, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import axios from "axios";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 
 const AddBook = () => {
   const navigate = useNavigate();

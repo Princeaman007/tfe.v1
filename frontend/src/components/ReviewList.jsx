@@ -13,7 +13,7 @@ import {
   Form,
 } from "react-bootstrap";
 import { FaStar, FaSyncAlt, FaBook, FaEdit, FaTrash } from "react-icons/fa";
-import { API_BASE_URL } from '../../config.js';;
+import { API_BASE_URL } from "../../config.js";
 
 const ReviewList = () => {
   const [reviews, setReviews] = useState([]);
