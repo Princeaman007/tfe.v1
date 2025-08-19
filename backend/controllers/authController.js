@@ -115,7 +115,7 @@ export const login = async (req, res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-    // ✅ Stocker le token dans un cookie sécurisé
+    // ✅ Stocker le token dans un cookie sécurisé (pour la sécurité)
     res.cookie("token", token, {
       httpOnly: true, 
       secure: process.env.NODE_ENV === "production", 
@@ -123,15 +123,17 @@ export const login = async (req, res) => {
     });
 
     console.log("🟢 Cookie envoyé :", token);
-    console.log("🔍 [Backend] - Utilisateur trouvé :", user); // ✅ Vérification
+    console.log("🔍 [Backend] - Utilisateur trouvé :", user);
 
+    // ✅ CORRECTION : Renvoyer le token dans la réponse JSON également
     res.status(200).json({ 
-      message: "Connexion réussie", 
+      message: "Connexion réussie",
+      token: token, // ✅ Ajout du token ici
       user: { 
         id: user._id,
         name: user.name, 
         email: user.email,
-        role: user.role // ✅ Maintenant `role` est bien inclus
+        role: user.role
       } 
     });
 
