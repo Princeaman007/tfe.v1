@@ -1,4 +1,4 @@
-import Review from "../models/ReviewModel.js";
+import Review from "../models/reviewModel.js";
 import Book from "../models/bookModel.js";
 
 // ✅ Ajouter un avis (Review) sur un livre
