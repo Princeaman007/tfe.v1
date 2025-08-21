@@ -54,8 +54,9 @@ app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173", 
   "http://localhost:5174",
+   "https://tfe-v1-front.onrender.com",
   "https://tfe-v1.onrender.com", 
-  "https://tfe-v1-front.onrender.com", 
+  
 
 ];
 
