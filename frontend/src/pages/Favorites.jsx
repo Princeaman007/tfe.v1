@@ -66,7 +66,9 @@ const Favorites = () => {
       });
     } catch (error) {
       console.error("❌ Erreur lors de la suppression:", error);
-      toast.error("Erreur lors de la suppression du favori");
+console.error("Status:", error.response?.status);
+console.error("Message:", error.response?.data?.message);
+toast.error(`Erreur: ${error.response?.status} - ${error.response?.data?.message || 'Suppression impossible'}`);
     }
   };
 
