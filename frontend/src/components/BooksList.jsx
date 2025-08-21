@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js";
 
 const BooksList = () => {
-   const { isAuthenticated, getAuthHeaders } = useAuth();
+  const { isAuthenticated, getAuthHeaders } = useAuth(); // ✅ Une seule déclaration
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -34,9 +34,9 @@ const BooksList = () => {
   const fetchBooks = async (pageNumber = 1, reset = false) => {
     setLoading(true);
     try {
-     const response = await axios.get(`${API_BASE_URL}/api/books`, {
-  params: { page: pageNumber, limit: 8, search, genre, sortByPrice },
-});
+      const response = await axios.get(`${API_BASE_URL}/api/books`, {
+        params: { page: pageNumber, limit: 8, search, genre, sortByPrice },
+      });
       const { books: fetchedBooks, totalPages: serverTotalPages } = response.data;
       setBooks(reset ? fetchedBooks : [...books, ...fetchedBooks]);
       setTotalPages(serverTotalPages || 1);
@@ -51,8 +51,8 @@ const BooksList = () => {
   const checkFavoriteStatus = async (bookId) => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/favorites/check/${bookId}`, {
-  headers: getAuthHeaders()
-});
+        headers: getAuthHeaders()
+      });
       return res.data.isFavorite;
     } catch (err) {
       console.error("Erreur lors de la vérification du statut favori:", err);
@@ -62,12 +62,12 @@ const BooksList = () => {
 
   const fetchUserFavorites = async () => {
     try {
-      console.log(" Récupération des favoris...");
+      console.log("📥 Récupération des favoris...");
       const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
-  headers: getAuthHeaders()
-});
+        headers: getAuthHeaders()
+      });
       
-      console.log(" Réponse favoris:", res.data);
+      console.log("✅ Réponse favoris:", res.data);
       
       // Vérifier que res.data.favorites existe et est un tableau
       if (res.data.favorites && Array.isArray(res.data.favorites)) {
@@ -81,7 +81,7 @@ const BooksList = () => {
         });
         setFavoriteStates(favStates);
         
-        console.log(" Favoris IDs:", Array.from(favoriteIds));
+        console.log("✅ Favoris IDs:", Array.from(favoriteIds));
       } else {
         console.log("⚠️ Aucun favori trouvé ou format incorrect");
         setFavorites(new Set());
@@ -108,8 +108,8 @@ const BooksList = () => {
     }
     try {
       await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { 
-  headers: getAuthHeaders() 
-});
+        headers: getAuthHeaders() 
+      });
       fetchBooks(page, true);
       toast.success("Like mis à jour!");
     } catch (error) {
@@ -132,16 +132,16 @@ const BooksList = () => {
       
       // 1. Toggle favori
       const favoriteRes = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
-  { bookId }, 
-  { headers: getAuthHeaders() }
-);
+        { bookId }, 
+        { headers: getAuthHeaders() }
+      );
       
       console.log("✅ Réponse toggle favori:", favoriteRes.data);
 
       // 2. Like automatique en même temps
       await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { 
-  headers: getAuthHeaders() 
-});
+        headers: getAuthHeaders() 
+      });
       
       console.log("✅ Like automatique appliqué");
 
@@ -184,11 +184,11 @@ const BooksList = () => {
       return;
     }
     try {
-     const res = await axios.post(
-  `${API_BASE_URL}/api/payment/create-checkout-session`,
-  { bookId },
-  { headers: getAuthHeaders() }
-);
+      const res = await axios.post(
+        `${API_BASE_URL}/api/payment/create-checkout-session`,
+        { bookId },
+        { headers: getAuthHeaders() }
+      );
       const { url } = res.data;
       window.location.href = url;
     } catch (err) {
@@ -200,7 +200,7 @@ const BooksList = () => {
   return (
     <Container className="mt-4">
       <h2 className="text-center mb-4 fw-bold text-primary">
-         Nos Livres Disponibles à la Location
+        📚 Nos Livres Disponibles à la Location
       </h2>
 
       <Row className="mb-4">
