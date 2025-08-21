@@ -14,8 +14,10 @@ import {
 } from "react-bootstrap";
 import { FaStar, FaSyncAlt, FaBook, FaEdit, FaTrash } from "react-icons/fa";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const ReviewList = () => {
+  const { getAuthHeaders } = useAuth(); 
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -30,9 +32,9 @@ const ReviewList = () => {
   const fetchReviews = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/reviews/me`, {
-        withCredentials: true,
-      });
+     const res = await axios.get(`${API_BASE_URL}/api/reviews/me`, {
+  headers: getAuthHeaders()
+});
       setReviews(res.data);
     } catch (err) {
       console.error("Erreur lors du chargement des avis :", err);
@@ -44,9 +46,9 @@ const ReviewList = () => {
   const handleDelete = async (reviewId) => {
     if (!window.confirm("Supprimer cet avis ?")) return;
     try {
-      await axios.delete(`${API_BASE_URL}/api/reviews/${reviewId}`, {
-        withCredentials: true,
-      });
+    await axios.delete(`${API_BASE_URL}/api/reviews/${reviewId}`, {
+  headers: getAuthHeaders()
+});
       fetchReviews();
     } catch (err) {
       console.error("Erreur suppression :", err);
@@ -70,16 +72,16 @@ const ReviewList = () => {
       comment: editComment,
     });
 
-    const res = await axios.put(
-      `${API_BASE_URL}/api/reviews/${selectedReview._id}`,
-      {
-        rating: editRating,
-        comment: editComment,
-      },
-      {
-        withCredentials: true,
-      }
-    );
+   const res = await axios.put(
+  `${API_BASE_URL}/api/reviews/${selectedReview._id}`,
+  {
+    rating: editRating,
+    comment: editComment,
+  },
+  {
+    headers: getAuthHeaders()
+  }
+);;
 
     console.log("✅ Mise à jour réussie :", res.data);
 

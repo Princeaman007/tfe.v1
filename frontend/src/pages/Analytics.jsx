@@ -4,16 +4,18 @@ import {
 } from "recharts";
 import axios from "axios";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const Analytics = () => {
+  const { getAuthHeaders } = useAuth();
   const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/rentals/admin/monthly`, {
-          withCredentials: true,
-        });
+  headers: getAuthHeaders()
+});
         setData(res.data);
       } catch (err) {
         console.error("Erreur chargement stats mensuelles :", err);

@@ -8,8 +8,10 @@ import { toast } from "react-toastify";
 import { FaStar, FaBook } from "react-icons/fa";
 import axios from "axios";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
+   const { getAuthHeaders } = useAuth();
   const [submitError, setSubmitError] = useState("");
 
   const {
@@ -57,21 +59,21 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
       
       console.log("📝 Création d'un nouvel avis...", data);
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/reviews`,
-        {
-          bookId: data.bookId,
-          rating: Number(data.rating),
-          comment: data.comment.trim()
-        },
-        {
-          withCredentials: true,
-          timeout: 10000,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+     const response = await axios.post(
+  `${API_BASE_URL}/api/reviews`,
+  {
+    bookId: data.bookId,
+    rating: Number(data.rating),
+    comment: data.comment.trim()
+  },
+  {
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  }
+);
 
       console.log("✅ Avis créé:", response.data);
       toast.success("Votre avis a été publié avec succès !");

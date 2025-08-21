@@ -11,8 +11,10 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { CSVLink } from "react-csv";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const AdminRentals = () => {
+   const { getAuthHeaders } = useAuth();
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,10 +24,10 @@ const AdminRentals = () => {
   const fetchRentals = async (page = 1) => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/api/rentals/admin/all`, {
-        params: { page, limit: 10 },
-        withCredentials: true,
-      });
+     const res = await axios.get(`${API_BASE_URL}/api/rentals/admin/all`, {
+  params: { page, limit: 10 },
+  headers: getAuthHeaders()
+});
 
       setRentals(res.data.rentals);
       setTotalPages(res.data.totalPages);

@@ -10,7 +10,7 @@ import UserFormModal from "../components/UserForm";
 import { API_BASE_URL } from "../../config.js";
 
 const ManageUsers = () => {
-  const { user } = useAuth();
+  const { user, getAuthHeaders } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
@@ -43,14 +43,14 @@ const ManageUsers = () => {
       });
 
       const response = await axios.get(`${API_BASE_URL}/api/users`, {
-        params: {
-          page: currentPage,
-          limit: 10,
-          search,
-          role: roleFilter
-        },
-        withCredentials: true
-      });
+  params: {
+    page: currentPage,
+    limit: 10,
+    search,
+    role: roleFilter
+  },
+  headers: getAuthHeaders()
+});
 
       console.log('✅ Utilisateurs reçus:', response.data);
       setUsers(response.data.users);
@@ -76,8 +76,8 @@ const ManageUsers = () => {
       console.log('📊 Récupération statistiques...');
 
       const response = await axios.get(`${API_BASE_URL}/api/users/stats`, {
-        withCredentials: true
-      });
+  headers: getAuthHeaders()
+});
 
       console.log('✅ Statistiques reçues:', response.data);
       setStats(response.data);
@@ -96,11 +96,11 @@ const ManageUsers = () => {
     console.log("📤 Création utilisateur - JSON:", JSON.stringify(userData));
     
     await axios.post(`${API_BASE_URL}/api/users`, userData, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+  headers: {
+    'Content-Type': 'application/json',
+    ...getAuthHeaders()
+  }
+});
     
     toast.success("Utilisateur créé avec succès!");
     setShowCreateModal(false);
@@ -123,11 +123,11 @@ const ManageUsers = () => {
 
       // ✅ FORCEZ le Content-Type
       const response = await axios.put(`${API_BASE_URL}/api/users/${userId}`, userData, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'  // ← Ajoutez ceci
-        }
-      });
+  headers: {
+    'Content-Type': 'application/json',
+    ...getAuthHeaders()
+  }
+});
 
       console.log("✅ Réponse serveur:", response.data);
 
@@ -147,9 +147,9 @@ const ManageUsers = () => {
     try {
       console.log("🗑️ Suppression utilisateur:", selectedUser._id);
 
-      await axios.delete(`${API_BASE_URL}/api/users/${selectedUser._id}`, {
-        withCredentials: true
-      });
+    await axios.delete(`${API_BASE_URL}/api/users/${selectedUser._id}`, {
+  headers: getAuthHeaders()
+});
 
       toast.success("Utilisateur supprimé avec succès!");
       setShowDeleteModal(false);
@@ -171,9 +171,9 @@ const ManageUsers = () => {
     try {
       console.log("🔄 Basculement vérification pour:", userId);
 
-      await axios.patch(`${API_BASE_URL}/api/users/${userId}/verify`, {}, {
-        withCredentials: true
-      });
+     await axios.patch(`${API_BASE_URL}/api/users/${userId}/verify`, {}, {
+  headers: getAuthHeaders()
+});
 
       toast.success("Statut de vérification mis à jour!");
       fetchUsers();

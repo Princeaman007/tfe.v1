@@ -12,6 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js"; 
+const { isAuthenticated, user, getAuthHeaders } = useAuth();
 
 const MyRentals = () => {
   const { isAuthenticated, user } = useAuth();
@@ -172,10 +173,10 @@ const MyRentals = () => {
       });
 
       const response = await axios.get(`${API_BASE_URL}/api/rentals`, {
-        params,
-        withCredentials: true,
-        timeout: 15000
-      });
+  params,
+  timeout: 15000,
+  headers: getAuthHeaders()
+});
 
       console.log("✅ Locations chargées:", response.data);
 
@@ -223,17 +224,17 @@ const MyRentals = () => {
 
       // Le schéma Zod gère la transformation
       const response = await axios.post(
-        `${API_BASE_URL}/api/rentals/return`,
-        {
-          rentalId: selectedRental._id,
-          returnedAt: data.returnedAt,
-          fineAmount: data.fineAmount || 0
-        },
-        {
-          withCredentials: true,
-          timeout: 10000
-        }
-      );
+  `${API_BASE_URL}/api/rentals/return`,
+  {
+    rentalId: selectedRental._id,
+    returnedAt: data.returnedAt,
+    fineAmount: data.fineAmount || 0
+  },
+  {
+    timeout: 10000,
+    headers: getAuthHeaders()
+  }
+);
 
       console.log("✅ Livre retourné:", response.data);
       toast.success(response.data.message || "Livre retourné avec succès !");
@@ -262,13 +263,13 @@ const MyRentals = () => {
 
       // Le schéma Zod transforme déjà en ISO string
       const response = await axios.put(
-        `${API_BASE_URL}/api/rentals/${selectedRental._id}/extend`,
-        { newDueDate: data.newDueDate },
-        {
-          withCredentials: true,
-          timeout: 10000
-        }
-      );
+  `${API_BASE_URL}/api/rentals/${selectedRental._id}/extend`,
+  { newDueDate: data.newDueDate },
+  {
+    timeout: 10000,
+    headers: getAuthHeaders()
+  }
+);
 
       console.log("✅ Date étendue:", response.data);
       toast.success("Date d'échéance prolongée avec succès !");
@@ -295,10 +296,10 @@ const MyRentals = () => {
       console.log("💳 Paiement amende pour:", rentalId);
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/payment/pay-fine`,
-        { rentalId },
-        { withCredentials: true }
-      );
+  `${API_BASE_URL}/api/payment/pay-fine`,
+  { rentalId },
+  { headers: getAuthHeaders() }
+);
 
       if (response.data.url) {
         window.location.href = response.data.url;

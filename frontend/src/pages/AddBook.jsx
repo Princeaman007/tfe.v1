@@ -8,8 +8,10 @@ import { Container, Row, Col, Card, Button, Alert, Spinner } from "react-bootstr
 import { toast } from "react-toastify";
 import axios from "axios";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const AddBook = () => {
+  const { getAuthHeaders } = useAuth();
   const navigate = useNavigate();
   const [genres, setGenres] = useState([]);
   const [loadingGenres, setLoadingGenres] = useState(false);
@@ -45,8 +47,8 @@ const AddBook = () => {
       try {
         setLoadingGenres(true);
         const response = await axios.get(`${API_BASE_URL}/api/books/genres`, {
-          withCredentials: true,
-        });
+  headers: getAuthHeaders()
+});
 
         let genresList = [];
         if (Array.isArray(response.data.genres)) {
@@ -88,16 +90,16 @@ const AddBook = () => {
 
       console.log("📋 Données envoyées:", bookData);
 
-      const response = await axios.post(
-        `http://localhost:5000/api/books`, 
-        bookData, 
-        {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+    const response = await axios.post(
+  `${API_BASE_URL}/api/books`, 
+  bookData, 
+  {
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  }
+);
 
       console.log("✅ Livre créé:", response.data);
       toast.success("Livre ajouté avec succès !");

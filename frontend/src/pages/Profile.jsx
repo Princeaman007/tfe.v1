@@ -8,7 +8,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../../config.js";  
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, getAuthHeaders } = useAuth();
   const [submitError, setSubmitError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -93,20 +93,20 @@ const Profile = () => {
       
       console.log("Changement de mot de passe...");
 
-      const response = await axios.put(
-        `${API_BASE_URL}/api/users/change-password`,
-        {
-          currentPassword: data.currentPassword,
-          newPassword: data.newPassword,
-          confirmNewPassword: data.confirmNewPassword
-        },
-        { 
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+   const response = await axios.put(
+  `${API_BASE_URL}/api/users/change-password`,
+  {
+    currentPassword: data.currentPassword,
+    newPassword: data.newPassword,
+    confirmNewPassword: data.confirmNewPassword
+  },
+  { 
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  }
+);
       
       console.log("✅ Mot de passe modifié:", response.data);
       setIsSuccess(true);

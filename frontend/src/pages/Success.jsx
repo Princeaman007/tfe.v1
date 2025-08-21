@@ -3,7 +3,9 @@ import { useSearchParams, Link } from "react-router-dom";
 import axios from "axios";
 import { Container, Spinner, Alert, Button, Card } from "react-bootstrap";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 const Success = () => {
+  const { getAuthHeaders } = useAuth();
   const [searchParams] = useSearchParams();
   const [sessionInfo, setSessionInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,8 +23,10 @@ const Success = () => {
 
       try {
         const res = await axios.post(`${API_BASE_URL}/api/payment/verify-payment`, {
-          sessionId,
-        });
+  sessionId,
+}, {
+  headers: getAuthHeaders()
+});
         console.log("✅ Réponse backend :", res.data);
         setSessionInfo(res.data.rental);
       } catch (err) {

@@ -10,7 +10,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../../config.js";
 
 const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
-  const { user } = useAuth();
+  const { user, getAuthHeaders } = useAuth();
   const [submitError, setSubmitError] = useState("");
   const [rentalPrice, setRentalPrice] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -80,16 +80,16 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
       };
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/rentals`,
-        rentalData,
-        {
-          withCredentials: true,
-          timeout: 15000,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+  `${API_BASE_URL}/api/rentals`,
+  rentalData,
+  {
+    timeout: 15000,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    }
+  }
+);
 
       console.log("✅ Location créée:", response.data);
       

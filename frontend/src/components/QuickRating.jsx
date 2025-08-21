@@ -8,8 +8,10 @@ import { toast } from "react-toastify";
 import { FaStar } from "react-icons/fa";
 import axios from "axios";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const QuickRating = ({ bookId, currentRating = 0, onRatingChange, disabled = false }) => {
+  const { getAuthHeaders } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userRating, setUserRating] = useState(currentRating);
 
@@ -31,16 +33,16 @@ const QuickRating = ({ bookId, currentRating = 0, onRatingChange, disabled = fal
       console.log("⭐ Notation rapide:", data);
 
       const response = await axios.post(
-        `${API_BASE_URL}/api/reviews/quick-rating`,
-        {
-          bookId: data.bookId,
-          rating: data.rating
-        },
-        {
-          withCredentials: true,
-          timeout: 5000
-        }
-      );
+  `${API_BASE_URL}/api/reviews/quick-rating`,
+  {
+    bookId: data.bookId,
+    rating: data.rating
+  },
+  {
+    timeout: 5000,
+    headers: getAuthHeaders()
+  }
+);
 
       console.log("✅ Note enregistrée:", response.data);
       toast.success(`Note de ${data.rating}/5 enregistrée !`);

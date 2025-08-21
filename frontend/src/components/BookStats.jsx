@@ -3,8 +3,10 @@ import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import axios from "axios";
 import { API_BASE_URL } from "../../config.js";
+import { useAuth } from '../context/AuthContext';
 
 const BookStats = () => {
+  const { getAuthHeaders } = useAuth();
   const [stats, setStats] = useState({
     totalBooks: 0,
     availableCopies: 0,
@@ -19,8 +21,8 @@ const BookStats = () => {
       try {
         console.log("📦 stats:", stats);
         const res = await axios.get(`${API_BASE_URL}/api/books/stats`, {
-          withCredentials: true,
-        });
+  headers: getAuthHeaders()
+});
         setStats(res.data);
         console.log("📦 stats fetched:", res.data);
       } catch (err) {

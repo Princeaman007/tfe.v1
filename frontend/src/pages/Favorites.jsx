@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js";
 
 const Favorites = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,8 +28,8 @@ const Favorites = () => {
   const fetchFavorites = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
-        withCredentials: true,
-      });
+  headers: getAuthHeaders()
+});
       console.log("✅ Favoris récupérés:", res.data);
       setFavorites(res.data.favorites);
     } catch (error) {
@@ -50,10 +50,10 @@ const Favorites = () => {
 
   const handleRemoveFromFavorites = async (bookId) => {
     try {
-      await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
-        { bookId }, 
-        { withCredentials: true }
-      );
+     await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
+  { bookId }, 
+  { headers: getAuthHeaders() }
+);
       
       // Retirer le livre de la liste locale
       setFavorites(prevFavorites => 
@@ -72,11 +72,11 @@ const Favorites = () => {
 
   const handleRentBook = async (bookId) => {
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/payment/create-checkout-session`,
-        { bookId },
-        { withCredentials: true }
-      );
+     const res = await axios.post(
+  `${API_BASE_URL}/api/payment/create-checkout-session`,
+  { bookId },
+  { headers: getAuthHeaders() }
+);
       const { url } = res.data;
       window.location.href = url;
     } catch (err) {

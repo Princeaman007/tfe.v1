@@ -13,7 +13,7 @@ import BookDeleteModal from "../components/BookDeleteModal";
 import { API_BASE_URL } from "../../config.js";
 
 const ManageBooks = () => {
-  const { user } = useAuth();
+    const { user, getAuthHeaders } = useAuth();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,17 +54,17 @@ const ManageBooks = () => {
       });
 
       const response = await axios.get(`${API_BASE_URL}/api/books`, {
-        params: {
-          page: currentPage,
-          limit: 10,
-          search: search.trim(),
-          genre: genreFilter,
-          sortBy,
-          sortOrder,
-        },
-        withCredentials: true,
-        timeout: 15000, // 15 secondes de timeout
-      });
+  params: {
+    page: currentPage,
+    limit: 10,
+    search: search.trim(),
+    genre: genreFilter,
+    sortBy,
+    sortOrder,
+  },
+  timeout: 15000,
+  headers: getAuthHeaders()
+});
 
       console.log("✅ Livres chargés:", response.data);
 
@@ -97,10 +97,10 @@ const ManageBooks = () => {
     try {
       console.log("🏷️ Chargement des genres...");
 
-      const response = await axios.get(`${API_BASE_URL}/api/books/genres`, {
-        withCredentials: true,
-        timeout: 10000,
-      });
+     const response = await axios.get(`${API_BASE_URL}/api/books/genres`, {
+  timeout: 10000,
+  headers: getAuthHeaders()
+});
 
       console.log("✅ Genres chargés:", response.data);
 
@@ -130,12 +130,12 @@ const ManageBooks = () => {
       console.log("📝 Création livre avec données:", { ...data, password: data.password ? '***' : undefined });
 
       const response = await axios.post(`${API_BASE_URL}/api/books`, data, {
-        withCredentials: true,
-        timeout: 10000,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    ...getAuthHeaders()
+  }
+});
 
       console.log("✅ Livre créé:", response.data);
       toast.success("Livre ajouté avec succès !");
@@ -157,13 +157,13 @@ const ManageBooks = () => {
     try {
       console.log("📝 Modification livre ID:", bookId, "avec données:", data);
 
-      const response = await axios.put(`${API_BASE_URL}/api/books/${bookId}`, data, {
-        withCredentials: true,
-        timeout: 10000,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+     const response = await axios.put(`${API_BASE_URL}/api/books/${bookId}`, data, {
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    ...getAuthHeaders()
+  }
+});
 
       console.log("✅ Livre modifié:", response.data);
       toast.success("Livre modifié avec succès !");
@@ -196,9 +196,9 @@ const ManageBooks = () => {
       }
 
       const response = await axios.delete(`${API_BASE_URL}/api/books/${bookId}`, {
-        withCredentials: true,
-        timeout: 15000, // Plus de temps pour la suppression
-      });
+  timeout: 15000,
+  headers: getAuthHeaders()
+});
 
       console.log("✅ Livre supprimé:", response.data);
       toast.success("Livre supprimé avec succès !");

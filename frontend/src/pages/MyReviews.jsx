@@ -22,8 +22,10 @@ import { toast } from "react-toastify";
 import { FaStar, FaSyncAlt, FaBook, FaTrash, FaEdit, FaSearch, FaFilter } from "react-icons/fa";
 
 import { API_BASE_URL } from "../../config.js"; 
+import { useAuth } from '../context/AuthContext';
 
 const ReviewList = () => {
+   const { getAuthHeaders } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -78,10 +80,10 @@ const ReviewList = () => {
       }
 
       const response = await axios.get(`${API_BASE_URL}/api/reviews/me`, {
-        params,
-        withCredentials: true,
-        timeout: 10000
-      });
+  params,
+  timeout: 10000,
+  headers: getAuthHeaders()
+});
 
       console.log("✅ Avis chargés:", response.data);
 
@@ -119,13 +121,13 @@ const ReviewList = () => {
     try {
       console.log("🗑️ Suppression avis:", selectedReviewId);
       
-      await axios.delete(
-        `${API_BASE_URL}/api/reviews/${selectedReviewId}`,
-        { 
-          withCredentials: true,
-          timeout: 10000
-        }
-      );
+    await axios.delete(
+  `${API_BASE_URL}/api/reviews/${selectedReviewId}`,
+  { 
+    timeout: 10000,
+    headers: getAuthHeaders()
+  }
+);
 
       toast.success("Avis supprimé avec succès !");
       setShowDeleteModal(false);
@@ -176,14 +178,14 @@ const ReviewList = () => {
         return;
       }
 
-      await axios.put(
-        `${API_BASE_URL}/api/reviews/${selectedReview._id}`,
-        updateData,
-        { 
-          withCredentials: true,
-          timeout: 10000
-        }
-      );
+     await axios.put(
+  `${API_BASE_URL}/api/reviews/${selectedReview._id}`,
+  updateData,
+  { 
+    timeout: 10000,
+    headers: getAuthHeaders()
+  }
+);
 
       toast.success("Avis modifié avec succès !");
       setShowEditModal(false);
