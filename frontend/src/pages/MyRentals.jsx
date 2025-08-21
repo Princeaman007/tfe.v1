@@ -4,18 +4,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { returnBookSchema, extendDueDateSchema, rentalSearchSchema } from "../schemas/rentalSchema";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import {
   Container, Row, Col, Card, Spinner, Alert, Button, Badge,
   Nav, Tab, Modal, Form, InputGroup, Pagination
 } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js"; 
-const { isAuthenticated, user, getAuthHeaders } = useAuth();
+
 
 const MyRentals = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
 
   // États principaux

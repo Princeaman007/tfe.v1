@@ -181,14 +181,14 @@ export const AuthProvider = ({ children }) => {
     
     console.log(`Vérification rôle: ${userRole} vs ${required}`);
     
-    if (required === 'superAdmin') {
-      return userRole === 'superAdmin';
+    if (required === 'superadmin') {
+      return userRole === 'superadmin';
     }
     if (required === 'admin') {
-      return userRole === 'admin' || userRole === 'superAdmin';
+      return userRole === 'admin' || userRole === 'superadmin';
     }
     if (required === 'user') {
-      return userRole === 'user' || userRole === 'admin' || userRole === 'superAdmin';
+      return userRole === 'user' || userRole === 'admin' || userRole === 'superadmin';
     }
     
     return userRole === required;

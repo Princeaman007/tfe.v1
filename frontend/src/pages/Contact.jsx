@@ -50,6 +50,7 @@ const contactSchema = z.object({
 const Contact = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [formStep, setFormStep] = useState(1);
+  const FORM_URL = import.meta.env.VITE_FORMSPREE_URL;
 
   const {
     register,
@@ -76,62 +77,61 @@ const Contact = () => {
   const watchedMessage = watch("message");
   const watchedCategory = watch("category");
 
-  const onFormSubmit = async (data) => {
-    try {
-      console.log("📧 Envoi du formulaire de contact via Formspree :", data);
-
-      // Envoi vers Formspree
-      const response = await fetch("https://formspree.io/f/mgvzjwgo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          subject: data.subject,
-          message: data.message,
-          category: data.category,
-          phone: data.phone || "",
-          urgent: data.urgent || false,
-          newsletter: data.newsletter || false,
-          // Métadonnées utiles
-          _subject: `[Bibliothèque] ${data.subject}`,
-          _replyto: data.email,
-          _next: window.location.origin + "/contact?success=true",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log("✅ Réponse Formspree :", result);
-
-      toast.success("Message envoyé avec succès ! Nous vous répondrons sous 24h.", {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      
-      setIsSuccess(true);
-      reset();
-      setFormStep(1);
-
-      setTimeout(() => setIsSuccess(false), 8000);
-
-    } catch (error) {
-      console.error("❌ Erreur envoi contact :", error);
-      toast.error("Erreur lors de l'envoi. Veuillez réessayer ou nous contacter directement.", {
-        position: "top-right",
-        autoClose: 7000,
-      });
+const onFormSubmit = async (data) => {
+  try {
+    if (!FORM_URL) {
+      throw new Error("VITE_FORMSPREE_URL est manquant. Ajoute-le dans frontend/.env et sur Render.");
     }
-  };
+
+    console.log("📧 Envoi du formulaire de contact via Formspree :", data);
+
+    const response = await fetch(FORM_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        message: data.message,
+        category: data.category,
+        phone: data.phone || "",
+        urgent: data.urgent || false,
+        newsletter: data.newsletter || false,
+        // Métadonnées utiles
+        _subject: `[Bibliothèque] ${data.subject}`,
+        _replyto: data.email,
+        _next: window.location.origin + "/contact?success=true",
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new Error(`Erreur HTTP: ${response.status} ${text}`);
+    }
+
+    const result = await response.json().catch(() => ({}));
+    console.log("✅ Réponse Formspree :", result);
+
+    toast.success("Message envoyé avec succès ! Nous vous répondrons sous 24h.", {
+      position: "top-right",
+      autoClose: 5000,
+    });
+
+    setIsSuccess(true);
+    reset();
+    setTimeout(() => setIsSuccess(false), 8000);
+  } catch (error) {
+    console.error("❌ Erreur envoi contact :", error);
+    toast.error("Erreur lors de l'envoi. Veuillez réessayer ou nous contacter directement.", {
+      position: "top-right",
+      autoClose: 7000,
+    });
+  }
+};
+
 
   const categories = [
     { value: "", label: "Sélectionnez une catégorie", description: "" },
@@ -298,9 +298,7 @@ const Contact = () => {
                         <div>
                           <h6 className="fw-bold mb-1">Téléphone</h6>
                           <p className="text-muted mb-0">
-                            <a href="tel:+32 467 620 878" className="text-decoration-none">
-                              +32 467 620 878
-                            </a>
+                            <a href="tel:+32467620878" className="text-decoration-none">+32 467 620 878</a>
                           </p>
                           <small className="text-success">
                             <i className="fas fa-circle me-1" style={{ fontSize: "6px" }}></i>
