@@ -52,6 +52,7 @@ app.use(helmet());
 
 // Dans server.js, remplacez cette partie :
 const allowedOrigins = [
+  "http://localhost:3000",
   "http://localhost:5173", 
   "http://localhost:5174",
    "https://tfe-v1-front.onrender.com",
