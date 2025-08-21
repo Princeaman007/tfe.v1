@@ -3,7 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from '../../config.js';
 
-const AuthContext = createContext();
+// Créer le contexte avec une valeur par défaut pour éviter l'erreur null
+const AuthContext = createContext({
+  isAuthenticated: false,
+  user: null,
+  login: () => {},
+  logout: () => {},
+  getAuthHeaders: () => ({}),
+  loading: true
+});
 
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -12,20 +20,20 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Helper pour configurer les headers avec token
+  // Helper pour configurer les headers avec token
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
   };
 
-  // ✅ Vérification du token et récupération de l'utilisateur
+  // Vérification du token et récupération de l'utilisateur
   const verifyToken = async () => {
     try {
-      console.log("🔍 Vérification du token...");
+      console.log("Vérification du token...");
       
       const token = localStorage.getItem('token');
       if (!token) {
-        console.log("❌ Aucun token trouvé");
+        console.log("Aucun token trouvé");
         clearAuthData();
         return false;
       }
@@ -34,9 +42,7 @@ export const AuthProvider = ({ children }) => {
         headers: getAuthHeaders()
       });
 
-      console.log("🟢 Token vérifié :", response.data);
-      console.log("🔑 Utilisateur récupéré :", response.data.user);
-      console.log("👤 Rôle de l'utilisateur :", response.data.user?.role);
+      console.log("Token vérifié :", response.data);
 
       if (response.status === 200 && response.data.user) {
         setIsAuthenticated(true);
@@ -44,15 +50,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(response.data.user));
         return true;
       } else {
-        console.log("❌ Token invalide ou utilisateur non trouvé");
+        console.log("Token invalide ou utilisateur non trouvé");
         clearAuthData();
         return false;
       }
     } catch (error) {
-      console.error("🔴 Erreur lors de la vérification du token :", error.response?.data?.message || error.message);
-      console.error("🔴 Status :", error.response?.status);
-      console.error("🔴 Message :", error.response?.data?.message);
-      
+      console.error("Erreur lors de la vérification du token :", error.response?.data?.message || error.message);
       clearAuthData();
       return false;
     } finally {
@@ -60,15 +63,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ Fonction pour nettoyer les données d'authentification
+  // Fonction pour nettoyer les données d'authentification
   const clearAuthData = () => {
     setIsAuthenticated(false);
     setUser(null);
     localStorage.removeItem("user");
-    localStorage.removeItem("token"); // ✅ Supprime aussi le token
+    localStorage.removeItem("token");
   };
 
-  // ✅ Initialisation avec vérification systématique du token
+  // Initialisation avec vérification systématique du token
   useEffect(() => {
     const initializeAuth = async () => {
       const storedUser = localStorage.getItem("user");
@@ -77,23 +80,21 @@ export const AuthProvider = ({ children }) => {
       if (storedUser && storedToken) {
         try {
           const parsedUser = JSON.parse(storedUser);
-          console.log("📦 Utilisateur stocké trouvé :", parsedUser);
-          console.log("🔑 Token trouvé :", storedToken.substring(0, 20) + '...');
-          console.log("👤 Rôle stocké :", parsedUser.role);
+          console.log("Utilisateur stocké trouvé :", parsedUser);
           
           // Vérification du token
           const isValid = await verifyToken();
           
           if (!isValid) {
-            console.log("⚠️ Token expiré, suppression des données stockées");
+            console.log("Token expiré, suppression des données stockées");
           }
         } catch (error) {
-          console.error("❌ Erreur parsing utilisateur stocké :", error);
+          console.error("Erreur parsing utilisateur stocké :", error);
           clearAuthData();
           setLoading(false);
         }
       } else {
-        console.log("🔍 Aucun utilisateur/token stocké");
+        console.log("Aucun utilisateur/token stocké");
         setLoading(false);
       }
     };
@@ -101,22 +102,19 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // ✅ Connexion avec gestion des tokens JWT
+  // Connexion avec gestion des tokens JWT
   const login = async (credentials) => {
     try {
-      console.log("🔐 Tentative de connexion...");
+      console.log("Tentative de connexion...");
       
       const response = await axios.post(`${API_BASE_URL}/api/auth/login`, credentials);
 
-      console.log("🟢 Connexion réussie :", response.data);
-      console.log("👤 Utilisateur connecté :", response.data.user);
-      console.log("🔑 Rôle :", response.data.user?.role);
+      console.log("Connexion réussie :", response.data);
 
-      // ✅ CORRECTION PRINCIPALE : Stocker le token JWT
       if (response.status === 200 && response.data.token && response.data.user) {
         // Stocker le TOKEN JWT
         localStorage.setItem("token", response.data.token);
-        console.log("🔑 Token stocké :", response.data.token.substring(0, 30) + '...');
+        console.log("Token stocké");
         
         // Stocker l'utilisateur
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -124,7 +122,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         setUser(response.data.user);
 
-        // 🔀 Redirection intelligente
+        // Redirection intelligente
         const from = location.state?.from?.pathname || "/dashboard";
         navigate(from);
         
@@ -133,30 +131,30 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Token ou utilisateur manquant dans la réponse");
       }
     } catch (error) {
-      console.error("🔴 Erreur de connexion :", error.response?.data?.message || error.message);
+      console.error("Erreur de connexion :", error.response?.data?.message || error.message);
       const message = error.response?.data?.message || "Identifiants incorrects !";
       
       return { success: false, message };
     }
   };
 
-  // ✅ Mise à jour de l'utilisateur après un changement de profil
+  // Mise à jour de l'utilisateur après un changement de profil
   const updateUserProfile = (updatedUser) => {
-    console.log("📝 Mise à jour du profil utilisateur :", updatedUser);
+    console.log("Mise à jour du profil utilisateur :", updatedUser);
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // ✅ Fonction pour forcer la mise à jour des données utilisateur
+  // Fonction pour forcer la mise à jour des données utilisateur
   const refreshUser = async () => {
-    console.log("🔄 Actualisation des données utilisateur...");
+    console.log("Actualisation des données utilisateur...");
     await verifyToken();
   };
 
-  // ✅ Déconnexion avec suppression des données stockées
+  // Déconnexion avec suppression des données stockées
   const logout = async () => {
     try {
-      console.log("🚪 Déconnexion en cours...");
+      console.log("Déconnexion en cours...");
       
       await axios.post(`${API_BASE_URL}/api/auth/logout`, {}, { 
         headers: getAuthHeaders()
@@ -165,23 +163,23 @@ export const AuthProvider = ({ children }) => {
       clearAuthData();
       navigate("/");
       
-      console.log("✅ Déconnexion réussie");
+      console.log("Déconnexion réussie");
     } catch (error) {
-      console.error("🔴 Erreur lors de la déconnexion :", error);
+      console.error("Erreur lors de la déconnexion :", error);
       // Même en cas d'erreur, on déconnecte localement
       clearAuthData();
       navigate("/");
     }
   };
 
-  // ✅ Fonction utilitaire pour vérifier les permissions
+  // Fonction utilitaire pour vérifier les permissions
   const hasRole = (requiredRole) => {
     if (!user || !user.role) return false;
     
     const userRole = user.role.toLowerCase();
     const required = requiredRole.toLowerCase();
     
-    console.log(`🔐 Vérification rôle: ${userRole} vs ${required}`);
+    console.log(`Vérification rôle: ${userRole} vs ${required}`);
     
     if (required === 'superAdmin') {
       return userRole === 'superAdmin';
@@ -196,7 +194,7 @@ export const AuthProvider = ({ children }) => {
     return userRole === required;
   };
 
-  // ✅ Helper pour faire des requêtes authentifiées
+  // Helper pour faire des requêtes authentifiées
   const authAxios = axios.create({
     baseURL: API_BASE_URL
   });
@@ -210,7 +208,7 @@ export const AuthProvider = ({ children }) => {
     return config;
   });
 
-  // ✅ Debug function
+  // Debug function
   const debugAuth = () => {
     console.log("=== DEBUG AUTH CONTEXT ===");
     console.log("isAuthenticated:", isAuthenticated);
@@ -222,7 +220,7 @@ export const AuthProvider = ({ children }) => {
     console.log("========================");
   };
 
-  // ✅ Éviter le rendu avant que l'authentification soit vérifiée
+  // Éviter le rendu avant que l'authentification soit vérifiée
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
@@ -230,7 +228,7 @@ export const AuthProvider = ({ children }) => {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Chargement...</span>
           </div>
-          <p className="mt-2">🔄 Vérification de l'authentification...</p>
+          <p className="mt-2">Vérification de l'authentification...</p>
         </div>
       </div>
     );
@@ -247,18 +245,22 @@ export const AuthProvider = ({ children }) => {
       hasRole,
       debugAuth,
       loading,
-      authAxios, // ✅ Axios configuré avec auth automatique
-      getAuthHeaders // ✅ Helper pour les headers
+      authAxios,
+      getAuthHeaders
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
+// Hook useAuth avec vérification de sécurité
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  
+  // Vérification critique pour éviter l'erreur null
+  if (context === undefined || context === null) {
     throw new Error("useAuth doit être utilisé dans un AuthProvider");
   }
+  
   return context;
 };
