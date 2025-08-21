@@ -11,7 +11,6 @@ import { API_BASE_URL } from "../../config.js";
 
 const BooksList = () => {
    const { isAuthenticated, getAuthHeaders } = useAuth();
-  const { isAuthenticated } = useAuth();
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
