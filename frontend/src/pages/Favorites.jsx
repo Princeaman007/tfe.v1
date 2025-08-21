@@ -28,8 +28,8 @@ const Favorites = () => {
   const fetchFavorites = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
-  headers: getAuthHeaders()
-});
+        headers: getAuthHeaders()
+      });
       console.log("✅ Favoris récupérés:", res.data);
       setFavorites(res.data.favorites);
     } catch (error) {
@@ -50,10 +50,10 @@ const Favorites = () => {
 
   const handleRemoveFromFavorites = async (bookId) => {
     try {
-     await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
-  { bookId }, 
-  { headers: getAuthHeaders() }
-);
+      await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
+        { bookId }, 
+        { headers: getAuthHeaders() }
+      );
       
       // Retirer le livre de la liste locale
       setFavorites(prevFavorites => 
@@ -66,19 +66,19 @@ const Favorites = () => {
       });
     } catch (error) {
       console.error("❌ Erreur lors de la suppression:", error);
-console.error("Status:", error.response?.status);
-console.error("Message:", error.response?.data?.message);
-toast.error(`Erreur: ${error.response?.status} - ${error.response?.data?.message || 'Suppression impossible'}`);
+      console.error("Status:", error.response?.status);
+      console.error("Message:", error.response?.data?.message);
+      toast.error(`Erreur: ${error.response?.status} - ${error.response?.data?.message || 'Suppression impossible'}`);
     }
   };
 
   const handleRentBook = async (bookId) => {
     try {
-     const res = await axios.post(
-  `${API_BASE_URL}/api/payment/create-checkout-session`,
-  { bookId },
-  { headers: getAuthHeaders() }
-);
+      const res = await axios.post(
+        `${API_BASE_URL}/api/payment/create-checkout-session`,
+        { bookId },
+        { headers: getAuthHeaders() }
+      );
       const { url } = res.data;
       window.location.href = url;
     } catch (err) {
