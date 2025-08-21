@@ -55,9 +55,19 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
-      console.error("Erreur lors de la vérification du token :", error.response?.data?.message || error.message);
-      clearAuthData();
-      return false;
+      const status = error?.response?.status;
+      console.error(
+        "Erreur lors de la vérification du token :",
+        status,
+        error.response?.data?.message || error.message
+      );
+      // ❗️Ne déconnecter que si le serveur confirme que le token est invalide/expiré
+      if (status === 401 || status === 403) {
+        clearAuthData();
+        return false;
+      }
+      // 🌐 Erreur réseau/5xx/CORS temporaire → conserver la session
+      return true;
     } finally {
       setLoading(false);
     }
@@ -81,6 +91,10 @@ export const AuthProvider = ({ children }) => {
         try {
           const parsedUser = JSON.parse(storedUser);
           console.log("Utilisateur stocké trouvé :", parsedUser);
+
+          // ✅ Initialisation optimiste pour éviter de "flasher" déconnecté
+          setIsAuthenticated(true);
+          setUser(parsedUser);
           
           // Vérification du token
           const isValid = await verifyToken();

@@ -65,7 +65,7 @@ const Success = () => {
         <p>Merci pour votre location 📚</p>
 
         <div className="my-3">
-          <p><strong>ID de session Stripe :</strong> {sessionInfo.stripeSessionId}</p>
+         
           <p><strong>Date de location :</strong> {
             sessionInfo.borrowedAt
               ? new Date(sessionInfo.borrowedAt).toLocaleDateString()
