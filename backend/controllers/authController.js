@@ -111,10 +111,10 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "Mot de passe incorrect." });
 
-    // MODIFIÉ: Token avec durée de 24h
+    // Token avec durée de 24h
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
 
-    // Stocker le token dans un cookie sécurisé (pour la sécurité)
+    // Stocker le token dans un cookie sécurisé
     res.cookie("token", token, {
       httpOnly: true, 
       secure: process.env.NODE_ENV === "production", 
@@ -142,7 +142,7 @@ export const login = async (req, res) => {
   }
 };
 
-// NOUVEAU: Fonction pour rafraîchir le token
+// Fonction pour rafraîchir le token
 export const refreshToken = async (req, res) => {
   try {
     console.log("Demande de rafraîchissement token pour utilisateur:", req.user.id);
@@ -199,7 +199,7 @@ export const refreshToken = async (req, res) => {
 // Récupérer le profil utilisateur
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password"); // Exclure le mot de passe
+    const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
@@ -211,7 +211,7 @@ export const getProfile = async (req, res) => {
   }
 };
 
-// Déconnexion (Logout)
+// Déconnexion
 export const logout = (req, res) => {
   res.clearCookie("token");
   res.clearCookie("refreshToken");
@@ -220,9 +220,16 @@ export const logout = (req, res) => {
 
 export const verifyToken = async (req, res) => {
   try {
-    console.log("Vérification du token - utilisateur détecté :", req.cookies.token);
+    // Utilise la même logique que le middleware protect
+    let token = req.cookies?.token || req.cookies?.["sb-wzayhciqmeudvzppnjyx-auth-token"];
 
-    const token = req.cookies.token;
+    if (!token && req.headers.authorization?.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    console.log("Vérification du token - méthode détectée :", 
+      token === req.cookies?.token ? "cookies" : "Authorization header");
+
     if (!token) {
       return res.status(401).json({ message: "Non autorisé, aucun token fourni" });
     }
@@ -230,16 +237,21 @@ export const verifyToken = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Récupération de l'utilisateur complet
-    const user = await User.findById(decoded.id).select("name email role");
+    const user = await User.findById(decoded.id).select("name email role isVerified");
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-    console.log("Utilisateur vérifié :", user);
-    res.status(200).json({ user }); // Renvoie l'utilisateur complet
+    console.log("Utilisateur vérifié :", user.email);
+    res.status(200).json({ user });
 
   } catch (error) {
-    console.error("Erreur de vérification du token :", error);
+    console.error("Erreur de vérification du token :", error.message);
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: "Token expiré" });
+    }
+    
     res.status(401).json({ message: "Token invalide ou expiré." });
   }
 };
@@ -258,7 +270,6 @@ export const adminResetPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    // Optionnel: Envoyer email de notification
     if (notifyUser) {
       // Code d'envoi d'email...
     }
@@ -273,7 +284,6 @@ export const adminResetPassword = async (req, res) => {
   }
 };
 
-// Mot de passe oublié
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -303,7 +313,6 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
-    // Lire les mêmes champs que la validation
     const { newPassword, confirmNewPassword } = req.body;
 
     console.log('Tentative de reset password avec token:', token.substring(0, 20) + '...');
@@ -312,14 +321,12 @@ export const resetPassword = async (req, res) => {
       confirmNewPassword: confirmNewPassword ? '***' : 'undefined'
     });
 
-    // Vérifier que les champs requis sont présents
     if (!newPassword || !confirmNewPassword) {
       return res.status(400).json({ 
         message: "Tous les champs sont obligatoires." 
       });
     }
 
-    // Vérifier le token JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -336,7 +343,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Trouver l'utilisateur
     const user = await User.findById(decoded.id);
     if (!user) {
       console.log('Utilisateur non trouvé pour ID:', decoded.id);
@@ -347,7 +353,6 @@ export const resetPassword = async (req, res) => {
 
     console.log('Utilisateur trouvé:', user.email);
 
-    // Hasher et sauvegarder le nouveau mot de passe
     user.password = await bcrypt.hash(newPassword, 12);
     await user.save();
 
