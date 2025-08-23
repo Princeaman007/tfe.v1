@@ -15,7 +15,7 @@ import {
 import { protect } from "../middleware/authMiddleware.js";
 import Rental from "../models/rentalModel.js";
 
-// ✅ AJOUT: Import des validateurs
+// Import des validateurs
 import {
   validateCreateRental,
   validateUpdateRental,
@@ -28,7 +28,7 @@ import { handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// ✅ Middleware : admin OU superAdmin
+// Middleware : admin OU superAdmin
 const isAdminOrSuperAdmin = (req, res, next) => {
   const role = req.user?.role;
   if (role === "admin" || role === "superAdmin") {
@@ -37,9 +37,57 @@ const isAdminOrSuperAdmin = (req, res, next) => {
   return res.status(403).json({ message: "Accès refusé : rôle admin ou superAdmin requis." });
 };
 
-// 🔹 Routes protégées pour les utilisateurs connectés
+// Routes protégées pour les utilisateurs connectés
 
-// ✅ Emprunter un livre
+// NOUVEAU: Statistiques utilisateur
+router.get("/stats", 
+  protect,
+  async (req, res) => {
+    try {
+      const userId = req.user._id;
+      
+      // Compter toutes les locations
+      const total = await Rental.countDocuments({ user: userId });
+      
+      // Compter les locations actives (empruntées et pas en retard)
+      const active = await Rental.countDocuments({ 
+        user: userId, 
+        status: 'borrowed',
+        dueDate: { $gte: new Date() }
+      });
+      
+      // Compter les retournées
+      const returned = await Rental.countDocuments({ 
+        user: userId, 
+        status: 'returned' 
+      });
+      
+      // Compter les en retard
+      const overdue = await Rental.countDocuments({ 
+        user: userId, 
+        status: 'borrowed',
+        dueDate: { $lt: new Date() }
+      });
+      
+      res.json({
+        success: true,
+        total,
+        active,
+        returned,
+        overdue
+      });
+      
+    } catch (error) {
+      console.error('Erreur stats rentals:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Erreur lors du calcul des statistiques' 
+      });
+    }
+  }
+);
+
+// Emprunter un livre
 router.post("/borrow", 
   protect,
   validateCreateRental,
@@ -47,7 +95,7 @@ router.post("/borrow",
   borrowBook
 );
 
-// ✅ Retourner un livre (version améliorée)
+// Retourner un livre (version améliorée)
 router.post("/return", 
   protect,
   validateReturnBook,
@@ -55,7 +103,7 @@ router.post("/return",
   returnBookImproved
 );
 
-// ✅ Mes locations (avec filtres optionnels)
+// Mes locations (avec filtres optionnels)
 router.get("/", 
   protect,
   validateRentalSearch,
@@ -63,7 +111,7 @@ router.get("/",
   getUserRentals
 );
 
-// ✅ Mes locations détaillées
+// Mes locations détaillées
 router.get("/detailed", 
   protect,
   validateRentalSearch,
@@ -71,9 +119,9 @@ router.get("/detailed",
   getUserRentalsDetailed
 );
 
-// 🔹 Gestion des locations (admin ou superAdmin)
+// Gestion des locations (admin ou superAdmin)
 
-// ✅ Toutes les locations
+// Toutes les locations
 router.get("/admin/all", 
   protect, 
   isAdminOrSuperAdmin,
@@ -82,7 +130,7 @@ router.get("/admin/all",
   getAllRentals
 );
 
-// ✅ Locations d'un utilisateur spécifique
+// Locations d'un utilisateur spécifique
 router.get("/admin/user/:userId", 
   protect, 
   isAdminOrSuperAdmin,
@@ -91,16 +139,16 @@ router.get("/admin/user/:userId",
   getUserRentalsByAdmin
 );
 
-// ✅ Statistiques mensuelles
+// Statistiques mensuelles
 router.get("/admin/monthly", 
   protect, 
   isAdminOrSuperAdmin,
   getMonthlyRentals
 );
 
-// 🔹 Gestion des retards
+// Gestion des retards
 
-// ✅ REFACTORISATION: Locations en retard
+// Locations en retard
 router.get("/admin/overdue", 
   protect, 
   isAdminOrSuperAdmin, 
@@ -124,7 +172,7 @@ router.get("/admin/overdue",
   }
 );
 
-// ✅ REFACTORISATION: Vérifier les retards
+// Vérifier les retards
 router.post("/admin/check-overdue", 
   protect, 
   isAdminOrSuperAdmin, 
@@ -145,7 +193,7 @@ router.post("/admin/check-overdue",
   }
 );
 
-// ✅ REFACTORISATION: Amendes impayées
+// Amendes impayées
 router.get("/admin/fines", 
   protect, 
   isAdminOrSuperAdmin, 
@@ -174,7 +222,7 @@ router.get("/admin/fines",
   }
 );
 
-// ✅ REFACTORISATION: Envoyer notifications d'amendes
+// Envoyer notifications d'amendes
 router.post("/admin/send-fine-notifications", 
   protect, 
   isAdminOrSuperAdmin, 
@@ -195,9 +243,9 @@ router.post("/admin/send-fine-notifications",
   }
 );
 
-// 🔹 BONUS: Routes supplémentaires avec validation
+// Routes supplémentaires avec validation
 
-// ✅ Prolonger la date d'échéance
+// Prolonger la date d'échéance
 router.put("/:id/extend", 
   protect,
   isAdminOrSuperAdmin,
@@ -235,7 +283,7 @@ router.put("/:id/extend",
   }
 );
 
-// ✅ Mettre à jour une location (admin)
+// Mettre à jour une location (admin)
 router.put("/:id", 
   protect,
   isAdminOrSuperAdmin,

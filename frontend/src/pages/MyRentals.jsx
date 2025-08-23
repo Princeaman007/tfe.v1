@@ -13,7 +13,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js"; 
 
-
 const MyRentals = () => {
   const { isAuthenticated, user, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
@@ -23,7 +22,14 @@ const MyRentals = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-  const [stats, setStats] = useState({});
+
+  // AJOUT: État séparé pour les stats globales
+  const [globalStats, setGlobalStats] = useState({
+    total: 0,
+    active: 0,
+    returned: 0,
+    overdue: 0
+  });
 
   // Pagination et filtres
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,7 +47,7 @@ const MyRentals = () => {
   const [showExtendModal, setShowExtendModal] = useState(false);
   const [selectedRental, setSelectedRental] = useState(null);
 
-  // ✅ FONCTIONS UTILITAIRES
+  // FONCTIONS UTILITAIRES
   
   // Calculer les jours restants avec gestion robuste
   const calculateDaysRemaining = (dueDate, returnedAt = null) => {
@@ -132,6 +138,42 @@ const MyRentals = () => {
     mode: "onChange"
   });
 
+  // MODIFICATION: Fonction pour récupérer les stats globales
+  const fetchGlobalStats = async () => {
+    try {
+      console.log("Chargement des statistiques globales...");
+      
+      const response = await axios.get(`${API_BASE_URL}/api/rentals/stats`, {
+        timeout: 10000,
+        headers: getAuthHeaders()
+      });
+
+      console.log("Stats globales chargées:", response.data);
+      
+      setGlobalStats({
+        total: response.data.total || 0,
+        active: response.data.active || 0,
+        returned: response.data.returned || 0,
+        overdue: response.data.overdue || 0
+      });
+
+    } catch (error) {
+      console.error("Erreur chargement stats:", error);
+      
+      // Fallback : calculer les stats à partir des données existantes si possible
+      if (rentals.length > 0) {
+        const calculated = {
+          total: totalRentals || rentals.length,
+          active: rentals.filter(r => r.status === 'borrowed' && !isRentalOverdue(r)).length,
+          returned: rentals.filter(r => r.status === 'returned').length,
+          overdue: rentals.filter(r => isRentalOverdue(r)).length
+        };
+        setGlobalStats(calculated);
+      }
+    }
+  };
+
+  // MODIFICATION: useEffect pour charger les stats au montage
   useEffect(() => {
     if (!isAuthenticated) {
       toast.error("Vous devez être connecté pour voir vos locations");
@@ -139,7 +181,11 @@ const MyRentals = () => {
       return;
     }
 
-    fetchRentals();
+    // Charger à la fois les rentals et les stats
+    Promise.all([
+      fetchRentals(),
+      fetchGlobalStats()
+    ]);
   }, [isAuthenticated, navigate, currentPage, activeTab, filters]);
 
   const fetchRentals = async () => {
@@ -147,7 +193,7 @@ const MyRentals = () => {
       setLoading(true);
       setError("");
 
-      console.log("📚 Chargement des locations...");
+      console.log("Chargement des locations...");
 
       const params = {
         page: currentPage,
@@ -159,6 +205,7 @@ const MyRentals = () => {
       // Ajouter les filtres selon l'onglet actif
       if (activeTab === "active") {
         params.status = "borrowed";
+        params.overdue = false; // Exclure les en retard
       } else if (activeTab === "returned") {
         params.status = "returned";
       } else if (activeTab === "overdue") {
@@ -173,23 +220,26 @@ const MyRentals = () => {
       });
 
       const response = await axios.get(`${API_BASE_URL}/api/rentals`, {
-  params,
-  timeout: 15000,
-  headers: getAuthHeaders()
-});
+        params,
+        timeout: 15000,
+        headers: getAuthHeaders()
+      });
 
-      console.log("✅ Locations chargées:", response.data);
+      console.log("Locations chargées:", response.data);
 
-      // Adapter selon la structure de votre API
+      // Traitement des données
       if (response.data.rentals) {
         setRentals(response.data.rentals);
         setTotalPages(response.data.totalPages || 1);
         setTotalRentals(response.data.totalCount || 0);
-        setStats({
-          total: response.data.totalCount || 0,
-          active: response.data.activeRentals || 0,
-          overdue: response.data.overdueRentals || 0
-        });
+        
+        // Utiliser les stats du backend si disponibles, sinon garder les stats globales
+        if (response.data.stats) {
+          setGlobalStats(prev => ({
+            ...prev,
+            ...response.data.stats
+          }));
+        }
       } else if (Array.isArray(response.data)) {
         setRentals(response.data);
         setTotalPages(1);
@@ -199,7 +249,7 @@ const MyRentals = () => {
       }
 
     } catch (err) {
-      console.error("❌ Erreur chargement locations:", err);
+      console.error("Erreur chargement locations:", err);
 
       if (err.response?.status === 401) {
         toast.error("Session expirée, veuillez vous reconnecter");
@@ -217,34 +267,34 @@ const MyRentals = () => {
     }
   };
 
-  // ✅ Submit retour corrigé
+  // Submit retour corrigé
   const onReturnSubmit = async (data) => {
     try {
-      console.log("📤 Retour de livre:", selectedRental._id, data);
+      console.log("Retour de livre:", selectedRental._id, data);
 
       // Le schéma Zod gère la transformation
       const response = await axios.post(
-  `${API_BASE_URL}/api/rentals/return`,
-  {
-    rentalId: selectedRental._id,
-    returnedAt: data.returnedAt,
-    fineAmount: data.fineAmount || 0
-  },
-  {
-    timeout: 10000,
-    headers: getAuthHeaders()
-  }
-);
+        `${API_BASE_URL}/api/rentals/return`,
+        {
+          rentalId: selectedRental._id,
+          returnedAt: data.returnedAt,
+          fineAmount: data.fineAmount || 0
+        },
+        {
+          timeout: 10000,
+          headers: getAuthHeaders()
+        }
+      );
 
-      console.log("✅ Livre retourné:", response.data);
+      console.log("Livre retourné:", response.data);
       toast.success(response.data.message || "Livre retourné avec succès !");
 
       setShowReturnModal(false);
       setSelectedRental(null);
-      await fetchRentals();
+      await Promise.all([fetchRentals(), fetchGlobalStats()]);
 
     } catch (error) {
-      console.error("❌ Erreur retour livre:", error);
+      console.error("Erreur retour livre:", error);
 
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
@@ -256,30 +306,30 @@ const MyRentals = () => {
     }
   };
 
-  // ✅ Submit extension corrigé
+  // Submit extension corrigé
   const onExtendSubmit = async (data) => {
     try {
-      console.log("📅 Extension de date:", selectedRental._id, data);
+      console.log("Extension de date:", selectedRental._id, data);
 
       // Le schéma Zod transforme déjà en ISO string
       const response = await axios.put(
-  `${API_BASE_URL}/api/rentals/${selectedRental._id}/extend`,
-  { newDueDate: data.newDueDate },
-  {
-    timeout: 10000,
-    headers: getAuthHeaders()
-  }
-);
+        `${API_BASE_URL}/api/rentals/${selectedRental._id}/extend`,
+        { newDueDate: data.newDueDate },
+        {
+          timeout: 10000,
+          headers: getAuthHeaders()
+        }
+      );
 
-      console.log("✅ Date étendue:", response.data);
+      console.log("Date étendue:", response.data);
       toast.success("Date d'échéance prolongée avec succès !");
 
       setShowExtendModal(false);
       setSelectedRental(null);
-      await fetchRentals();
+      await Promise.all([fetchRentals(), fetchGlobalStats()]);
 
     } catch (error) {
-      console.error("❌ Erreur extension date:", error);
+      console.error("Erreur extension date:", error);
       
       if (error.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
@@ -293,33 +343,33 @@ const MyRentals = () => {
 
   const handlePayFine = async (rentalId) => {
     try {
-      console.log("💳 Paiement amende pour:", rentalId);
+      console.log("Paiement amende pour:", rentalId);
 
       const response = await axios.post(
-  `${API_BASE_URL}/api/payment/pay-fine`,
-  { rentalId },
-  { headers: getAuthHeaders() }
-);
+        `${API_BASE_URL}/api/payment/pay-fine`,
+        { rentalId },
+        { headers: getAuthHeaders() }
+      );
 
       if (response.data.url) {
         window.location.href = response.data.url;
       } else {
         toast.success("Amende payée avec succès !");
-        await fetchRentals();
+        await Promise.all([fetchRentals(), fetchGlobalStats()]);
       }
     } catch (error) {
-      console.error("❌ Erreur paiement amende:", error);
+      console.error("Erreur paiement amende:", error);
       toast.error("Erreur lors du paiement de l'amende");
     }
   };
 
-  // ✅ Modal de retour corrigé
+  // Modal de retour corrigé
   const openReturnModal = (rental) => {
     setSelectedRental(rental);
     setShowReturnModal(true);
   };
 
-  // ✅ Modal d'extension corrigé
+  // Modal d'extension corrigé
   const openExtendModal = (rental) => {
     setSelectedRental(rental);
 
@@ -359,7 +409,7 @@ const MyRentals = () => {
     setCurrentPage(1);
   };
 
-  // ✅ Badge de statut robuste
+  // Badge de statut robuste
   const getStatusBadge = (rental) => {
     if (rental.status === 'returned') {
       return <Badge bg="success">Retourné</Badge>;
@@ -379,7 +429,7 @@ const MyRentals = () => {
     return <Badge bg="primary">En cours</Badge>;
   };
 
-  // ✅ Texte des jours restants robuste
+  // Texte des jours restants robuste
   const getDaysRemainingText = (rental) => {
     if (rental.status === 'returned') return 'Retourné';
 
@@ -429,7 +479,7 @@ const MyRentals = () => {
             Mes Locations
           </h2>
           <p className="text-muted mb-0">
-            Gérez vos livres loués et vos retours • {totalRentals} location{totalRentals > 1 ? 's' : ''} au total
+            Gérez vos livres loués et vos retours • {globalStats.total} location{globalStats.total > 1 ? 's' : ''} au total
           </p>
         </div>
         <Link to="/dashboard" className="btn btn-outline-primary">
@@ -438,7 +488,7 @@ const MyRentals = () => {
         </Link>
       </div>
 
-      {/* Statistiques */}
+      {/* MODIFICATION: Statistiques avec données globales */}
       <Row className="mb-4">
         <Col md={3}>
           <Card className="text-center border-0 shadow-sm bg-gradient">
@@ -446,7 +496,7 @@ const MyRentals = () => {
               <div className="text-primary mb-2">
                 <i className="fas fa-book" style={{ fontSize: "2rem" }}></i>
               </div>
-              <h3 className="fw-bold text-primary mb-1">{stats.total || 0}</h3>
+              <h3 className="fw-bold text-primary mb-1">{globalStats.total}</h3>
               <p className="text-muted mb-0 small">Total locations</p>
             </Card.Body>
           </Card>
@@ -457,7 +507,7 @@ const MyRentals = () => {
               <div className="text-success mb-2">
                 <i className="fas fa-clock" style={{ fontSize: "2rem" }}></i>
               </div>
-              <h3 className="fw-bold text-success mb-1">{stats.active || 0}</h3>
+              <h3 className="fw-bold text-success mb-1">{globalStats.active}</h3>
               <p className="text-muted mb-0 small">En cours</p>
             </Card.Body>
           </Card>
@@ -468,7 +518,7 @@ const MyRentals = () => {
               <div className="text-danger mb-2">
                 <i className="fas fa-exclamation-triangle" style={{ fontSize: "2rem" }}></i>
               </div>
-              <h3 className="fw-bold text-danger mb-1">{stats.overdue || 0}</h3>
+              <h3 className="fw-bold text-danger mb-1">{globalStats.overdue}</h3>
               <p className="text-muted mb-0 small">En retard</p>
             </Card.Body>
           </Card>
@@ -479,16 +529,14 @@ const MyRentals = () => {
               <div className="text-info mb-2">
                 <i className="fas fa-check-circle" style={{ fontSize: "2rem" }}></i>
               </div>
-              <h3 className="fw-bold text-info mb-1">
-                {rentals.filter(r => r.status === 'returned').length}
-              </h3>
+              <h3 className="fw-bold text-info mb-1">{globalStats.returned}</h3>
               <p className="text-muted mb-0 small">Retournés</p>
             </Card.Body>
           </Card>
         </Col>
       </Row>
 
-      {/* Filtres */}
+      {/* Filtres - inchangés */}
       <Card className="shadow-sm mb-4">
         <Card.Body>
           <Row className="align-items-end">
@@ -543,31 +591,31 @@ const MyRentals = () => {
         </Card.Body>
       </Card>
 
-      {/* Onglets */}
+      {/* MODIFICATION: Onglets avec stats globales */}
       <Tab.Container activeKey={activeTab} onSelect={setActiveTab}>
         <Nav variant="tabs" className="mb-4">
           <Nav.Item>
             <Nav.Link eventKey="all">
               <i className="fas fa-list me-2"></i>
-              Toutes ({totalRentals})
+              Toutes ({globalStats.total})
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
             <Nav.Link eventKey="active">
               <i className="fas fa-clock me-2"></i>
-              En cours ({stats.active || 0})
+              En cours ({globalStats.active})
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
             <Nav.Link eventKey="overdue">
               <i className="fas fa-exclamation-triangle me-2"></i>
-              En retard ({stats.overdue || 0})
+              En retard ({globalStats.overdue})
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
             <Nav.Link eventKey="returned">
               <i className="fas fa-check-circle me-2"></i>
-              Retournés ({rentals.filter(r => r.status === 'returned').length})
+              Retournés ({globalStats.returned})
             </Nav.Link>
           </Nav.Item>
         </Nav>
@@ -651,7 +699,7 @@ const MyRentals = () => {
                               </small>
                             </div>
 
-                            {/* ✅ Affichage des jours restants corrigé */}
+                            {/* Affichage des jours restants */}
                             <div className="mb-3">
                               <small className={`fw-bold ${(() => {
                                 const daysRemaining = getDaysRemaining(rental);
@@ -683,7 +731,7 @@ const MyRentals = () => {
                               </div>
                             )}
 
-                            {/* ✅ Boutons d'action corrigés */}
+                            {/* Boutons d'action */}
                             <div className="d-flex gap-2 flex-wrap">
                               {rental.status === 'borrowed' && (
                                 <>
@@ -695,16 +743,6 @@ const MyRentals = () => {
                                     <i className="fas fa-undo me-1"></i>
                                     Retourner
                                   </Button>
-
-                                  {/* <Button
-                                    size="sm"
-                                    variant="info"
-                                    onClick={() => openExtendModal(rental)}
-                                    disabled={getDaysRemaining(rental) < -7} 
-                                  >
-                                    <i className="fas fa-calendar-plus me-1"></i>
-                                    Prolonger
-                                  </Button> */}
                                 </>
                               )}
 
@@ -783,7 +821,7 @@ const MyRentals = () => {
         </Tab.Content>
       </Tab.Container>
 
-      {/* ✅ Modal de retour corrigé */}
+      {/* Modal de retour */}
       <Modal show={showReturnModal} onHide={() => setShowReturnModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -817,7 +855,7 @@ const MyRentals = () => {
                     isInvalid={!!returnErrors.returnedAt}
                     disabled={isReturning}
                     defaultValue={formatDateForInput(new Date())}
-                    max={formatDateForInput(new Date())} // Empêcher dates futures
+                    max={formatDateForInput(new Date())}
                   />
                   {returnErrors.returnedAt && (
                     <Form.Control.Feedback type="invalid">
@@ -897,7 +935,7 @@ const MyRentals = () => {
         </form>
       </Modal>
 
-      {/* ✅ Modal d'extension corrigé */}
+      {/* Modal d'extension */}
       <Modal show={showExtendModal} onHide={() => setShowExtendModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>
@@ -933,7 +971,7 @@ const MyRentals = () => {
                     {...registerExtend("newDueDate")}
                     isInvalid={!!extendErrors.newDueDate}
                     disabled={isExtending}
-                    min={formatDateForInput(new Date())} // Empêcher les dates passées
+                    min={formatDateForInput(new Date())}
                   />
                   {extendErrors.newDueDate && (
                     <Form.Control.Feedback type="invalid">
