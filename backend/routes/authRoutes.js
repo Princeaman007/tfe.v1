@@ -7,11 +7,12 @@ import {
   forgotPassword,
   resetPassword,
   logout,
-  verifyToken
+  verifyToken,
+  refreshToken 
 } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
-// ✅ CORRECTION: Chemins d'import fixes
+
 import { 
   validateRegisterUser,
   validateLoginUser,
@@ -47,6 +48,9 @@ router.post("/login",
 
 // ✅ Vérification du Token (middleware de vérification)
 router.get("/verify", verifyToken);
+
+// ✅ NOUVEAU: Rafraîchissement du token
+router.post("/refresh-token", protect, refreshToken);
 
 // ✅ Récupérer le profil utilisateur (Protégé)
 router.get("/profile", 
