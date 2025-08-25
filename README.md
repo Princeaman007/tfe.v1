@@ -192,9 +192,7 @@ FRONTEND_URL=https://your-app.vercel.app
 - 📚 CRUD complet sur le catalogue
 - 💰 Suivi des paiements et amendes
 
-## 📱 Captures d'Écran
 
-*Ajoutez ici des captures d'écran de votre application*
 
 ## 🤝 Contribution
 
