@@ -55,6 +55,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173", 
   "http://localhost:5174",
+  "https://bibliotheque.princeaman.dev",
    "https://tfe-v1-front.onrender.com",
   "https://tfe-v1.onrender.com", 
   
