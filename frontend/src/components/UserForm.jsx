@@ -11,12 +11,12 @@ const UserFormModal = ({
   onSubmit,
   initialData = null,
   title,
-  mode = "create", // "create" ou "edit"
-  currentUserRole = "admin" // Rôle de l'utilisateur connecté
+  mode = "create", 
+  currentUserRole = "admin" 
 }) => {
   const [submitError, setSubmitError] = useState("");
 
-  // Choisir le bon schéma selon le mode
+  
   const schema = mode === "edit" ? adminUpdateUserSchema : adminCreateUserSchema;
   const isEditMode = mode === "edit" && initialData;
 
@@ -25,7 +25,7 @@ const UserFormModal = ({
     reset,
     setValue,
     watch,
-    register, // ✅ Ajout de register
+    register,
     formState: { errors, isSubmitting, isDirty, isValid },
     trigger
   } = useForm({
@@ -41,10 +41,10 @@ const UserFormModal = ({
     }
   });
 
-  // Observer tous les champs pour les passer à UserForm
+  
   const watchedFields = watch();
 
-  // Fonction pour mettre à jour les données du formulaire
+  
   const setFormData = (updateFn) => {
     const newData = typeof updateFn === 'function' ? updateFn(watchedFields) : updateFn;
 
@@ -59,18 +59,18 @@ const UserFormModal = ({
   useEffect(() => {
     if (show) {
       if (initialData) {
-        // Mode édition - populate avec les données existantes
+        
         reset({
           name: initialData.name || "",
           email: initialData.email || "",
           role: initialData.role || "user",
           isVerified: initialData.isVerified || false,
-          // Ne pas inclure les mots de passe en mode édition
+          
           password: "",
           confirmPassword: ""
         });
       } else {
-        // Mode création - formulaire vide
+        
         reset({
           name: "",
           email: "",
@@ -100,7 +100,7 @@ const UserFormModal = ({
     let preparedData;
 
     if (isEditMode) {
-      // Mode édition - préparer seulement les champs modifiés
+      
       preparedData = {};
 
       console.log("🔍 Comparaison role:", {
@@ -116,7 +116,7 @@ const UserFormModal = ({
 
       console.log("🔍 Données préparées:", preparedData);
 
-      // Vérifier qu'il y a des modifications
+      
       if (Object.keys(preparedData).length === 0) {
         setSubmitError("Aucune modification détectée");
         return;
@@ -126,18 +126,18 @@ const UserFormModal = ({
     name: data.name,
     email: data.email,
     password: data.password,
-    confirmPassword: data.confirmPassword, // ← Le serveur en a besoin pour valider
+    confirmPassword: data.confirmPassword, 
     role: data.role,
     isVerified: data.isVerified
   };
 }
 
-    // ✅ Log déplacé APRÈS la déclaration de preparedData
+    
     console.log("🔍 preparedData final:", preparedData);
 
     await onSubmit(preparedData);
 
-    // Si succès, le parent fermera le modal
+    
   } catch (error) {
     console.error("Erreur lors de la soumission:", error);
     setSubmitError(
@@ -153,7 +153,7 @@ const UserFormModal = ({
     }
   };
 
-  // Déterminer si le bouton submit doit être actif
+  
   const isSubmitDisabled = () => {
     if (isSubmitting) return true;
     if (mode === "create") return !isValid;
@@ -161,7 +161,7 @@ const UserFormModal = ({
     return false;
   };
 
-  // Convertir les erreurs de React Hook Form au format attendu par UserForm
+  
   const formatErrors = (rhfErrors) => {
     const formattedErrors = {};
     Object.keys(rhfErrors).forEach(key => {
@@ -196,7 +196,7 @@ const UserFormModal = ({
             </Alert>
           )}
 
-          {/* Contexte pour le mode édition */}
+          
           {isEditMode && (
             <div className="bg-light p-3 rounded mb-4">
               <h6 className="text-primary mb-2">
@@ -228,7 +228,7 @@ const UserFormModal = ({
             </div>
           )}
 
-          {/* ✅ Champs corrigés avec register */}
+          
           <div>
             <div className="mb-3">
               <label className="form-label">Nom</label>
@@ -291,7 +291,7 @@ const UserFormModal = ({
               )}
             </div>
 
-            {/* Champs de mot de passe pour la création uniquement */}
+            
             {!isEditMode && (
               <>
                 <div className="mb-3">
@@ -325,7 +325,7 @@ const UserFormModal = ({
             )}
           </div>
 
-          {/* Indicateur de modifications pour le mode édition */}
+          
           {isEditMode && isDirty && (
             <div className="alert alert-info mt-3">
               <i className="fas fa-info-circle me-2"></i>

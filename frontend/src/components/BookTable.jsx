@@ -1,4 +1,4 @@
-// src/components/BookTable.jsx
+
 import React from "react";
 import { Table, Badge, Button, Spinner } from "react-bootstrap";
 

@@ -1,4 +1,4 @@
-// src/components/BookFormModal.jsx
+
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Button, Row, Col, Spinner, Alert } from "react-bootstrap";
 import { useForm } from "react-hook-form";
@@ -21,7 +21,7 @@ const BookFormModal = ({
   const [loadingGenres, setLoadingGenres] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // Choisir le bon schéma selon le mode
+  
   const schema = mode === "edit" ? bookUpdateSchema : bookCreateSchema;
   const isEditMode = mode === "edit" && initialData;
 
@@ -46,7 +46,7 @@ const BookFormModal = ({
     }
   });
 
-  // Observer l'image pour la prévisualisation
+  
   const watchedCoverImage = watch("coverImage");
 
   // Fetch genres
@@ -85,7 +85,7 @@ const BookFormModal = ({
   useEffect(() => {
     if (show) {
       if (initialData) {
-        // Mode édition - populate avec les données existantes
+        
         reset({
           title: initialData.title || "",
           author: initialData.author || "",
@@ -97,7 +97,7 @@ const BookFormModal = ({
           coverImage: initialData.coverImage || ""
         });
       } else {
-        // Mode création - formulaire vide
+        
         reset({
           title: "",
           author: "",
@@ -126,7 +126,7 @@ const BookFormModal = ({
       let preparedData;
 
       if (isEditMode) {
-        // Mode édition - préparer seulement les champs modifiés
+        
         preparedData = {};
         
         if (data.title !== initialData.title) preparedData.title = data.title;
@@ -148,13 +148,13 @@ const BookFormModal = ({
           preparedData.coverImage = data.coverImage || undefined;
         }
 
-        // Vérifier qu'il y a des modifications
+        
         if (Object.keys(preparedData).length === 0) {
           setSubmitError("Aucune modification détectée");
           return;
         }
       } else {
-        // Mode création - préparer toutes les données
+        
         preparedData = {
           title: data.title,
           author: data.author,
@@ -169,7 +169,7 @@ const BookFormModal = ({
 
       await onSubmit(preparedData);
       
-      // Si succès, le parent fermera le modal
+      
     } catch (error) {
       console.error("Erreur lors de la soumission:", error);
       setSubmitError(
@@ -185,7 +185,7 @@ const BookFormModal = ({
     }
   };
 
-  // Déterminer si le bouton submit doit être actif
+  
   const isSubmitDisabled = () => {
     if (isSubmitting) return true;
     if (mode === "create") return !isValid;
@@ -217,7 +217,7 @@ const BookFormModal = ({
             </Alert>
           )}
 
-          {/* Contexte pour le mode édition */}
+          
           {isEditMode && (
             <div className="bg-light p-3 rounded mb-4">
               <h6 className="text-primary mb-2">
@@ -365,7 +365,7 @@ const BookFormModal = ({
               {errors.coverImage?.message}
             </Form.Control.Feedback>
             
-            {/* Prévisualisation de l'image */}
+            
             {watchedCoverImage && !errors.coverImage && (
               <div className="mt-2">
                 <small className="text-muted">Aperçu :</small>
@@ -383,7 +383,7 @@ const BookFormModal = ({
             )}
           </Form.Group>
 
-          {/* Indicateur de modifications pour le mode édition */}
+          
           {isEditMode && isDirty && (
             <div className="alert alert-info">
               <i className="fas fa-info-circle me-2"></i>

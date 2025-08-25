@@ -1,4 +1,4 @@
-// src/components/CreateRental.jsx
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,22 +31,22 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
     }
   });
 
-  // Observer la durée pour calculer le prix
+  
   const watchedDuration = watch("duration");
 
-  // Mettre à jour le bookId quand il change
+  
   useEffect(() => {
     if (bookId) {
       setValue("bookId", bookId);
     }
   }, [bookId, setValue]);
 
-  // Calculer le prix selon la durée
+  
   useEffect(() => {
     if (book && watchedDuration) {
-      // Prix de base + durée * prix par jour
-      const basePrice = book.rentalPrice || book.price * 0.1 || 2; // 10% du prix ou 2€ minimum
-      const dailyRate = 0.5; // 0.50€ par jour
+      
+      const basePrice = book.rentalPrice || book.price * 0.1 || 2; 
+      const dailyRate = 0.5; 
       const calculatedPrice = basePrice + (watchedDuration - 7) * dailyRate;
       setRentalPrice(Math.max(calculatedPrice, basePrice));
     }
@@ -68,9 +68,9 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
       setSubmitError("");
       setLoading(true);
       
-      console.log("📚 Création d'une location...", data);
+      console.log("Création d'une location...", data);
 
-      // Calculer la date d'échéance
+      
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + data.duration);
 
@@ -91,9 +91,9 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
   }
 );
 
-      console.log("✅ Location créée:", response.data);
+      console.log("Location créée:", response.data);
       
-      // Si paiement requis
+      
       if (response.data.paymentUrl) {
         toast.info("Redirection vers le paiement...");
         window.location.href = response.data.paymentUrl;
@@ -102,11 +102,11 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
 
       toast.success("Livre emprunté avec succès !");
       
-      // Fermer le modal et reset
+      
       onHide();
       reset();
       
-      // Callback de succès
+      
       if (onSuccess) {
         onSuccess(response.data);
       }
@@ -115,7 +115,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
       console.error("❌ Erreur création location:", error);
       
       if (error.response?.data?.errors) {
-        // Erreurs de validation express-validator
+        
         const validationErrors = error.response.data.errors;
         const errorMessages = validationErrors.map(err => err.msg).join(', ');
         setSubmitError(errorMessages);
@@ -180,7 +180,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
             </Alert>
           )}
 
-          {/* Informations du livre */}
+          
           {book && (
             <Card className="bg-light border-0 mb-4">
               <Card.Body className="p-3">
@@ -219,7 +219,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
             </Card>
           )}
 
-          {/* Informations utilisateur */}
+          
           {user && (
             <Card className="border-primary mb-4">
               <Card.Body className="p-3">
@@ -239,7 +239,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
             </Card>
           )}
 
-          {/* Sélection de la durée */}
+          
           <Form.Group className="mb-4">
             <Form.Label className="fw-bold">
               Durée d'emprunt <span className="text-danger">*</span>
@@ -289,7 +289,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
             )}
           </Form.Group>
 
-          {/* Résumé de la commande */}
+          
           <Card className="border-success">
             <Card.Header className="bg-success text-white">
               <h6 className="mb-0">
@@ -322,7 +322,7 @@ const CreateRental = ({ show, onHide, bookId, book, onSuccess }) => {
             </Card.Body>
           </Card>
 
-          {/* Champ caché pour bookId */}
+          
           <input type="hidden" {...register("bookId")} />
           {errors.bookId && (
             <Alert variant="danger" className="mt-3">

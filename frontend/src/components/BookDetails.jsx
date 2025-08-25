@@ -1,11 +1,11 @@
-// frontend/src/components/BookDetails.jsx - Version corrigée
+
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import {
   Container, Row, Col, Image, Button, Spinner, Alert, Badge, Form, Modal
 } from "react-bootstrap";
-import { useAuth } from "../context/AuthContext"; // ✅ Import unique
+import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js";
 
@@ -20,7 +20,7 @@ const getInitials = (name) => {
 
 const BookDetails = () => {
   const { id } = useParams();
-  const { isAuthenticated, getAuthHeaders } = useAuth(); // ✅ Déclaration unique
+  const { isAuthenticated, getAuthHeaders } = useAuth(); 
 
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -246,7 +246,7 @@ const BookDetails = () => {
               />
             </div>
             
-            {/* Badge de disponibilité */}
+           
             <div className="position-absolute top-0 start-0 m-3">
               <Badge bg={book.availableCopies > 0 ? "success" : "danger"}>
                 {book.availableCopies > 0 ? "Disponible" : "Non disponible"}
@@ -264,7 +264,7 @@ const BookDetails = () => {
               <h4 className="text-muted mb-3">par {book.author}</h4>
             </div>
             
-            {/* Prix */}
+           
             <div className="text-end">
               <div className="display-6 fw-bold text-success">
                 {typeof book.price === "number" 
@@ -297,7 +297,7 @@ const BookDetails = () => {
             {book.description || "Aucune description disponible pour ce livre."}
           </p>
 
-          {/* Boutons d'action */}
+         
           <div className="d-flex flex-wrap gap-3 mt-4">
             <Button 
               variant="primary" 
@@ -338,7 +338,7 @@ const BookDetails = () => {
             </Button>
           </div>
 
-          {/* Informations supplémentaires */}
+          
           <div className="mt-4 p-3 bg-light rounded">
             <h6 className="fw-bold mb-2">
               <i className="fas fa-info-circle me-2 text-primary"></i>
@@ -362,7 +362,7 @@ const BookDetails = () => {
         </Col>
       </Row>
 
-      {/* Section des avis */}
+     
       <Row className="mt-5">
         <Col>
           <div className="border-top pt-5">
@@ -374,7 +374,7 @@ const BookDetails = () => {
               )}
             </h3>
 
-            {/* Formulaire d'ajout d'avis */}
+            
             {isAuthenticated && (
               <div className="card p-4 mb-4 bg-light border-0">
                 <h5 className="mb-3">Laissez votre avis</h5>
@@ -420,7 +420,7 @@ const BookDetails = () => {
               </div>
             )}
 
-            {/* Liste des avis */}
+           
             {reviews.length === 0 ? (
               <div className="text-center py-5">
                 <i className="fas fa-comment-slash text-muted mb-3" style={{ fontSize: "3rem" }}></i>
@@ -464,7 +464,7 @@ const BookDetails = () => {
         </Col>
       </Row>
 
-      {/* Modal de confirmation de location */}
+     
       <Modal show={showRentModal} onHide={() => setShowRentModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>

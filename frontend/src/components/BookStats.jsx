@@ -1,4 +1,4 @@
-// src/components/BookStats.jsx
+
 import React, { useEffect, useState } from "react";
 import { Row, Col, Card } from "react-bootstrap";
 import axios from "axios";
@@ -24,7 +24,7 @@ const BookStats = () => {
   headers: getAuthHeaders()
 });
         setStats(res.data);
-        console.log("📦 stats fetched:", res.data);
+        console.log(" stats fetched:", res.data);
       } catch (err) {
         console.error("Erreur lors du chargement des statistiques:", err);
       }

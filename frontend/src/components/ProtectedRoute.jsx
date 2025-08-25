@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children, role, allowedRoles }) => {
   const { isAuthenticated, user, loading } = authData;
   const location = useLocation();
 
-  // Affichage de chargement pendant la vérification d'authentification
+  
   if (loading || isAuthenticated === null) {
     return (
       <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
@@ -31,12 +31,12 @@ const ProtectedRoute = ({ children, role, allowedRoles }) => {
     );
   }
 
-  // Redirection vers login si pas connecté
+  
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // Vérification des rôles avec gestion des hiérarchies
+  
   if (role || allowedRoles) {
     const userRole = user?.role?.toLowerCase();
     
@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children, role, allowedRoles }) => {
       return <Navigate to="/dashboard" replace />;
     }
 
-    // Vérification avec allowedRoles (prioritaire sur role)
+    
     if (allowedRoles) {
       const hasAllowedRole = allowedRoles.some(
         allowedRole => allowedRole.toLowerCase() === userRole
@@ -56,12 +56,12 @@ const ProtectedRoute = ({ children, role, allowedRoles }) => {
         return <Navigate to="/dashboard" replace />;
       }
     } 
-    // Vérification avec role (hiérarchie)
+    
     else if (role) {
       const roleHierarchy = {
         user: 1,
         admin: 2,
-        superadmin: 3 // Attention à la casse
+        superadmin: 3 
       };
 
       const userRoleLevel = roleHierarchy[userRole] || 0;

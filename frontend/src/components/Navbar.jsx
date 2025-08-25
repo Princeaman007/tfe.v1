@@ -13,12 +13,12 @@ const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
-        {/* Logo / Nom */}
+        
         <Link to="/" className="navbar-brand fw-bold">
-          📚 Bibliothèque
+          Ma Bibliothèque
         </Link>
 
-        {/* Bouton pour Mobile */}
+        
         <button 
           className="navbar-toggler" 
           type="button" 
@@ -31,7 +31,7 @@ const Navbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Liens de Navigation */}
+        
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">

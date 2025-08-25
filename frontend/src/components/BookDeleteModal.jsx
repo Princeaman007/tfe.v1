@@ -26,8 +26,7 @@ const BookDeleteModal = ({ show, onHide, onDelete, book }) => {
       
       await onDelete(book._id || book.id);
       
-      // Si la suppression réussit, le parent fermera le modal
-      // Le reset se fera via l'useEffect ci-dessus
+      
     } catch (error) {
       console.error("Erreur lors de la suppression:", error);
       setDeleteError(
@@ -94,7 +93,7 @@ const BookDeleteModal = ({ show, onHide, onDelete, book }) => {
             <strong>Attention :</strong> Cette action est irréversible !
           </div>
 
-          {/* Informations supplémentaires si le livre a des emprunts */}
+          
           {book?.borrowedCount > 0 && (
             <div className="alert alert-info">
               <i className="fas fa-info-circle me-2"></i>

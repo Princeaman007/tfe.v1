@@ -1,4 +1,4 @@
-// src/components/BookEditModal.jsx
+
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col, Spinner, Alert } from "react-bootstrap";
 import { useForm } from "react-hook-form";
@@ -36,7 +36,7 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
     }
   });
 
-  // Observer les changements pour la prévisualisation
+  
   const watchedCoverImage = watch("coverImage");
 
   // Fetch genres
@@ -65,7 +65,7 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
   // Populate form when book changes
   useEffect(() => {
     if (book && show) {
-      // Reset form and populate with book data
+      
       reset({
         title: book.title || "",
         author: book.author || "",
@@ -90,7 +90,7 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
     try {
       setSubmitError("");
       
-      // Prepare data - only include changed fields
+      
       const changedData = {};
       
       // Compare with original book data and only include changed fields
@@ -151,7 +151,7 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
             </Alert>
           )}
 
-          {/* Affichage du livre en cours de modification */}
+          
           {book && (
             <div className="bg-light p-3 rounded mb-4">
               <h6 className="text-primary mb-2">
@@ -299,7 +299,7 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
               {errors.coverImage?.message}
             </Form.Control.Feedback>
             
-            {/* Prévisualisation de l'image */}
+           
             {watchedCoverImage && !errors.coverImage && (
               <div className="mt-2">
                 <small className="text-muted">Aperçu :</small>
@@ -317,7 +317,7 @@ const BookEditModal = ({ show, onHide, onSubmit, book }) => {
             )}
           </Form.Group>
 
-          {/* Indicateur de modifications */}
+          
           {isDirty && (
             <div className="alert alert-info">
               <i className="fas fa-info-circle me-2"></i>

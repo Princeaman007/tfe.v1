@@ -1,4 +1,4 @@
-// frontend/src/components/BooksList.jsx - Mise à jour avec favoris
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import { API_BASE_URL } from "../../config.js";
 
 const BooksList = () => {
-  const { isAuthenticated, getAuthHeaders } = useAuth(); // ✅ Une seule déclaration
+  const { isAuthenticated, getAuthHeaders } = useAuth();
   const [books, setBooks] = useState([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ const BooksList = () => {
   const [genre, setGenre] = useState("");
   const [sortByPrice, setSortByPrice] = useState("");
   const [favorites, setFavorites] = useState(new Set());
-  const [favoriteStates, setFavoriteStates] = useState({}); // Pour gérer l'état individuel de chaque livre
+  const [favoriteStates, setFavoriteStates] = useState({}); 
 
   useEffect(() => {
     fetchBooks(1, true);
@@ -62,40 +62,40 @@ const BooksList = () => {
 
   const fetchUserFavorites = async () => {
     try {
-      console.log("📥 Récupération des favoris...");
+      console.log("Récupération des favoris...");
       const res = await axios.get(`${API_BASE_URL}/api/favorites`, {
         headers: getAuthHeaders()
       });
       
-      console.log("✅ Réponse favoris:", res.data);
+      console.log(" Réponse favoris:", res.data);
       
-      // Vérifier que res.data.favorites existe et est un tableau
+      
       if (res.data.favorites && Array.isArray(res.data.favorites)) {
         const favoriteIds = new Set(res.data.favorites.map(book => book._id));
         setFavorites(favoriteIds);
         
-        // Créer un objet avec l'état de chaque favori
+        
         const favStates = {};
         res.data.favorites.forEach(book => {
           favStates[book._id] = true;
         });
         setFavoriteStates(favStates);
         
-        console.log("✅ Favoris IDs:", Array.from(favoriteIds));
+        console.log(" Favoris IDs:", Array.from(favoriteIds));
       } else {
-        console.log("⚠️ Aucun favori trouvé ou format incorrect");
+        console.log(" Aucun favori trouvé ou format incorrect");
         setFavorites(new Set());
         setFavoriteStates({});
       }
     } catch (error) {
-      console.error("❌ Erreur lors de la récupération des favoris:", error);
-      console.error("❌ Détails de l'erreur:", error.response?.data);
+      console.error(" Erreur lors de la récupération des favoris:", error);
+      console.error(" Détails de l'erreur:", error.response?.data);
       
-      // Ne pas afficher d'erreur si l'utilisateur n'a simplement pas de favoris
+      
       if (error.response?.status !== 404) {
         toast.error("Erreur lors de la récupération des favoris");
       }
-      // En cas d'erreur, initialiser avec un Set vide
+      
       setFavorites(new Set());
       setFavoriteStates({});
     }
@@ -124,11 +124,11 @@ const BooksList = () => {
       return;
     }
 
-    // Loading individuel pour chaque livre
+    
     setFavoriteStates(prev => ({ ...prev, [`${bookId}_loading`]: true }));
     
     try {
-      console.log("🔍 Toggle favori pour bookId:", bookId);
+      console.log("Toggle favori pour bookId:", bookId);
       
       // 1. Toggle favori
       const favoriteRes = await axios.post(`${API_BASE_URL}/api/favorites/toggle`, 
@@ -136,23 +136,23 @@ const BooksList = () => {
         { headers: getAuthHeaders() }
       );
       
-      console.log("✅ Réponse toggle favori:", favoriteRes.data);
+      console.log("Réponse toggle favori:", favoriteRes.data);
 
-      // 2. Like automatique en même temps
+      
       await axios.post(`${API_BASE_URL}/api/books/${bookId}/like`, {}, { 
         headers: getAuthHeaders() 
       });
       
-      console.log("✅ Like automatique appliqué");
+      console.log("Like automatique appliqué");
 
-      // Mettre à jour l'état favori
+      
       setFavoriteStates(prev => ({ 
         ...prev, 
         [bookId]: favoriteRes.data.isFavorite,
         [`${bookId}_loading`]: false 
       }));
 
-      // Mettre à jour aussi le Set pour la compatibilité
+      
       const newFavorites = new Set(favorites);
       if (favoriteRes.data.isFavorite) {
         newFavorites.add(bookId);
@@ -163,10 +163,10 @@ const BooksList = () => {
       }
       setFavorites(newFavorites);
 
-      // Recharger les livres pour mettre à jour le compteur de likes
+      
       fetchBooks(page, true);
 
-      // Toast de succès
+      
       toast.success(favoriteRes.data.message, {
         position: "top-right",
         autoClose: 2000,
@@ -192,7 +192,7 @@ const BooksList = () => {
       const { url } = res.data;
       window.location.href = url;
     } catch (err) {
-      console.error("❌ Erreur Stripe BooksList:", err);
+      console.error("Erreur Stripe BooksList:", err);
       toast.error(err.response?.data?.message || "Erreur lors de la création du paiement");
     }
   };
@@ -236,14 +236,14 @@ const BooksList = () => {
         {books.map(book => (
           <Col key={book._id} lg={3} md={4} sm={6}>
             <Card className="shadow-sm h-100 position-relative">
-              {/* Badge de disponibilité */}
+              
               <div className="position-absolute top-0 start-0 m-2" style={{ zIndex: 2 }}>
                 <Badge bg={book.availableCopies > 0 ? "success" : "danger"}>
                   {book.availableCopies > 0 ? "Disponible" : "Indisponible"}
                 </Badge>
               </div>
 
-              {/* Bouton favori + like - VERSION CŒUR PRO */}
+              
               {isAuthenticated && (
                 <div className="position-absolute top-0 end-0 m-3" style={{ zIndex: 10 }}>
                   <div
@@ -388,7 +388,7 @@ const BooksList = () => {
 
                   <div className="d-grid gap-2">
                     <div className="d-flex gap-1">
-                      {/* Bouton like - JUSTE POUR AFFICHAGE */}
+                      
                       <Button 
                         variant="outline-secondary" 
                         size="sm" 

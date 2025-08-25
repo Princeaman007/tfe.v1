@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from '../../config.js';
 
-// Créer le contexte avec une valeur par défaut pour éviter l'erreur null
+
 const AuthContext = createContext({
   isAuthenticated: false,
   user: null,
@@ -34,14 +34,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const isExpired = payload.exp * 1000 < Date.now();
-      console.log("🕐 Vérification expiration token:", { 
+      console.log(" Vérification expiration token:", { 
         exp: new Date(payload.exp * 1000), 
         now: new Date(), 
         isExpired 
       });
       return isExpired;
     } catch (error) {
-      console.error("❌ Erreur parsing token:", error);
+      console.error(" Erreur parsing token:", error);
       return true;
     }
   };
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
 
       // Vérification côté client d'abord
       if (isTokenExpired()) {
-        console.log("🕐 Token expiré côté client");
+        console.log(" Token expiré côté client");
         clearAuthData();
         return false;
       }
@@ -90,12 +90,12 @@ export const AuthProvider = ({ children }) => {
       );
       // ❗️Ne déconnecter que si le serveur confirme que le token est invalide/expiré
       if (status === 401 || status === 403) {
-        console.log("🚨 Token rejeté par le serveur");
+        console.log(" Token rejeté par le serveur");
         clearAuthData();
         return false;
       }
-      // 🌐 Erreur réseau/5xx/CORS temporaire → conserver la session
-      console.log("⚠️ Erreur réseau temporaire, conservation de la session");
+      // Erreur réseau/5xx/CORS temporaire → conserver la session
+      console.log("Erreur réseau temporaire, conservation de la session");
       return true;
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }) => {
 
   // Fonction pour nettoyer les données d'authentification
   const clearAuthData = () => {
-    console.log("🧹 Nettoyage des données d'authentification");
+    console.log(" Nettoyage des données d'authentification");
     setIsAuthenticated(false);
     setUser(null);
     localStorage.removeItem("user");
@@ -117,17 +117,17 @@ export const AuthProvider = ({ children }) => {
     const user = localStorage.getItem('user');
     
     if (!token || !user) {
-      console.log("❌ Token ou utilisateur manquant");
+      console.log(" Token ou utilisateur manquant");
       return false;
     }
     
     if (isTokenExpired()) {
-      console.log("🕐 Token expiré");
+      console.log(" Token expiré");
       clearAuthData();
       return false;
     }
     
-    console.log("✅ Authentification valide");
+    console.log(" Authentification valide");
     return true;
   };
 
@@ -137,10 +137,10 @@ export const AuthProvider = ({ children }) => {
     
     const checkTokenPeriodically = setInterval(async () => {
       if (isTokenExpiringSoon() && !isTokenExpired()) {
-        console.log("🔄 Vérification périodique: rafraîchissement du token");
+        console.log(" Vérification périodique: rafraîchissement du token");
         await autoRefreshToken();
       } else if (isTokenExpired()) {
-        console.log("🕐 Token expiré détecté lors de la vérification périodique");
+        console.log(" Token expiré détecté lors de la vérification périodique");
         clearAuthData();
         navigate('/login');
         clearInterval(checkTokenPeriodically);
@@ -160,7 +160,7 @@ export const AuthProvider = ({ children }) => {
         try {
           // Vérification côté client d'abord
           if (isTokenExpired()) {
-            console.log("🕐 Token expiré au démarrage, suppression");
+            console.log(" Token expiré au démarrage, suppression");
             clearAuthData();
             setLoading(false);
             return;
@@ -169,7 +169,7 @@ export const AuthProvider = ({ children }) => {
           const parsedUser = JSON.parse(storedUser);
           console.log("Utilisateur stocké trouvé :", parsedUser);
 
-          // ✅ Initialisation optimiste pour éviter de "flasher" déconnecté
+          // Initialisation optimiste pour éviter de "flasher" déconnecté
           setIsAuthenticated(true);
           setUser(parsedUser);
           
@@ -246,7 +246,7 @@ export const AuthProvider = ({ children }) => {
       const timeUntilExpiry = (payload.exp * 1000) - Date.now();
       const tenMinutes = 10 * 60 * 1000;
       
-      console.log("🕐 Temps avant expiration:", Math.floor(timeUntilExpiry / 1000 / 60), "minutes");
+      console.log(" Temps avant expiration:", Math.floor(timeUntilExpiry / 1000 / 60), "minutes");
       return timeUntilExpiry < tenMinutes;
     } catch {
       return true;
@@ -260,7 +260,7 @@ export const AuthProvider = ({ children }) => {
     }
     
     try {
-      console.log("🔄 Rafraîchissement automatique du token...");
+      console.log(" Rafraîchissement automatique du token...");
       
       const response = await axios.post(`${API_BASE_URL}/api/auth/refresh-token`, {}, {
         headers: getAuthHeaders()
@@ -268,11 +268,11 @@ export const AuthProvider = ({ children }) => {
       
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        console.log("✅ Token rafraîchi automatiquement");
+        console.log(" Token rafraîchi automatiquement");
         return true;
       }
     } catch (error) {
-      console.error("❌ Échec du rafraîchissement automatique:", error);
+      console.error(" Échec du rafraîchissement automatique:", error);
       if (error.response?.status === 401) {
         clearAuthData();
       }
@@ -292,7 +292,7 @@ export const AuthProvider = ({ children }) => {
     
     // Vérification côté client d'abord
     if (!checkAuthStatus()) {
-      console.log("❌ Échec de la vérification d'authentification côté client");
+      console.log(" Échec de la vérification d'authentification côté client");
       return false;
     }
     
@@ -357,7 +357,7 @@ export const AuthProvider = ({ children }) => {
     if (token && !isTokenExpired()) {
       config.headers.Authorization = `Bearer ${token}`;
     } else if (isTokenExpired()) {
-      console.log("🕐 Token expiré détecté dans l'intercepteur");
+      console.log(" Token expiré détecté dans l'intercepteur");
       clearAuthData();
       // Optionnel: rediriger vers login
       // navigate('/login');
@@ -370,7 +370,7 @@ export const AuthProvider = ({ children }) => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("🚨 Token rejeté par le serveur dans intercepteur");
+        console.log(" Token rejeté par le serveur dans intercepteur");
         clearAuthData();
         navigate('/login');
       }

@@ -1,4 +1,4 @@
-// src/components/BookReviews.jsx
+
 import React, { useState, useEffect } from "react";
 import { Card, Row, Col, Spinner, Alert, Badge, Button, ProgressBar } from "react-bootstrap";
 import { FaStar, FaUser, FaCalendar, FaEdit, FaFlag } from "react-icons/fa";
@@ -38,15 +38,15 @@ const BookReviews = ({ bookId, book }) => {
     sortOrder: "desc"
   },
   timeout: 10000
-  // ✅ Supprimé withCredentials - route publique
+  
 });
 
-      console.log("✅ Avis chargés:", response.data);
+      console.log("Avis chargés:", response.data);
 
       const reviewsData = response.data.reviews || response.data || [];
       setReviews(reviewsData);
 
-      // Trouver l'avis de l'utilisateur connecté
+      
       if (user) {
         const currentUserReview = reviewsData.find(
           review => review.user?._id === user.id || review.user?.id === user.id
@@ -55,7 +55,7 @@ const BookReviews = ({ bookId, book }) => {
       }
 
     } catch (err) {
-      console.error("❌ Erreur chargement avis:", err);
+      console.error(" Erreur chargement avis:", err);
       setError("Erreur lors du chargement des avis.");
       setReviews([]);
     } finally {
@@ -65,19 +65,19 @@ const BookReviews = ({ bookId, book }) => {
 
   const fetchStats = async () => {
     try {
-      console.log("📊 Chargement statistiques avis pour:", bookId);
+      console.log(" Chargement statistiques avis pour:", bookId);
 
       const response = await axios.get(`${API_BASE_URL}/api/reviews/stats/${bookId}`, {
   timeout: 5000
-  // ✅ Supprimé withCredentials - route publique
+  
 });
 
-      console.log("✅ Statistiques chargées:", response.data);
+      console.log(" Statistiques chargées:", response.data);
       setStats(response.data);
 
     } catch (err) {
-      console.error("❌ Erreur chargement stats:", err);
-      // Les stats ne sont pas critiques, on continue sans
+      console.error(" Erreur chargement stats:", err);
+      
     }
   };
 
@@ -162,7 +162,7 @@ const BookReviews = ({ bookId, book }) => {
 
   return (
     <div>
-      {/* En-tête avec statistiques */}
+      
       {stats && (
         <Card className="mb-4">
           <Card.Body>
@@ -186,7 +186,7 @@ const BookReviews = ({ bookId, book }) => {
         </Card>
       )}
 
-      {/* Actions utilisateur */}
+      
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h5>Avis des lecteurs</h5>
         {user && !userReview && (
@@ -205,7 +205,7 @@ const BookReviews = ({ bookId, book }) => {
         )}
       </div>
 
-      {/* Liste des avis */}
+    
       {error ? (
         <Alert variant="danger">
           {error}
@@ -277,7 +277,7 @@ const BookReviews = ({ bookId, book }) => {
                     </p>
                   )}
 
-                  {/* Badge pour l'avis de l'utilisateur connecté */}
+                  
                   {user && review.user?._id === user.id && (
                     <Badge bg="success" className="mt-2">
                       Votre avis
@@ -290,7 +290,7 @@ const BookReviews = ({ bookId, book }) => {
         </Row>
       )}
 
-      {/* Modal de création d'avis */}
+      
       <CreateReview
         show={showCreateModal}
         onHide={() => setShowCreateModal(false)}

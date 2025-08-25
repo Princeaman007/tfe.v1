@@ -1,4 +1,4 @@
-// src/components/BookCreateModal.jsx
+
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Row, Col, Spinner, Alert } from "react-bootstrap";
 import { useForm } from "react-hook-form";
@@ -22,7 +22,7 @@ const BookCreateModal = ({ show, onHide, onSubmit }) => {
     watch
   } = useForm({
     resolver: zodResolver(bookCreateSchema),
-    mode: "onChange", // Validation en temps réel
+    mode: "onChange", 
     defaultValues: {
       title: "",
       author: "",
@@ -35,7 +35,7 @@ const BookCreateModal = ({ show, onHide, onSubmit }) => {
     }
   });
 
-  // Observer les changements pour la prévisualisation (optionnel)
+  
   const watchedCoverImage = watch("coverImage");
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const BookCreateModal = ({ show, onHide, onSubmit }) => {
 
     if (show) {
       fetchGenres();
-      setSubmitError(""); // Reset error when modal opens
+      setSubmitError(""); 
     }
   }, [show]);
 
@@ -77,15 +77,14 @@ const BookCreateModal = ({ show, onHide, onSubmit }) => {
         publishedYear: data.publishedYear ? Number(data.publishedYear) : undefined,
         price: Number(data.price),
         availableCopies: data.availableCopies ? Number(data.availableCopies) : undefined,
-        // Remove empty strings
+        
         description: data.description || undefined,
         coverImage: data.coverImage || undefined
       };
 
       await onSubmit(transformedData);
       
-      // If successful, the parent component should close the modal
-      // and the reset will happen via the useEffect above
+      
     } catch (error) {
       console.error("Erreur lors de la création:", error);
       setSubmitError(
@@ -238,7 +237,7 @@ const BookCreateModal = ({ show, onHide, onSubmit }) => {
               {errors.coverImage?.message}
             </Form.Control.Feedback>
             
-            {/* Prévisualisation de l'image (optionnel) */}
+            
             {watchedCoverImage && !errors.coverImage && (
               <div className="mt-2">
                 <img 

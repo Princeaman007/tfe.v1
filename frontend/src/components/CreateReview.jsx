@@ -1,4 +1,4 @@
-// src/components/CreateReview.jsx
+
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,10 +31,10 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
     }
   });
 
-  // Observer la note pour l'affichage des étoiles
+  
   const watchedRating = watch("rating");
 
-  // Mettre à jour le bookId quand il change
+  
   useEffect(() => {
     if (bookId) {
       setValue("bookId", bookId);
@@ -57,7 +57,7 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
     try {
       setSubmitError("");
       
-      console.log("📝 Création d'un nouvel avis...", data);
+      console.log(" Création d'un nouvel avis...", data);
 
      const response = await axios.post(
   `${API_BASE_URL}/api/reviews`,
@@ -75,7 +75,7 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
   }
 );
 
-      console.log("✅ Avis créé:", response.data);
+      console.log(" Avis créé:", response.data);
       toast.success("Votre avis a été publié avec succès !");
       
       // Fermer le modal et reset
@@ -88,7 +88,7 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
       }
       
     } catch (error) {
-      console.error("❌ Erreur création avis:", error);
+      console.error(" Erreur création avis:", error);
       
       if (error.response?.data?.errors) {
         // Erreurs de validation express-validator
@@ -174,7 +174,7 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
             </Card>
           )}
 
-          {/* Sélection de la note */}
+          
           <Form.Group className="mb-4">
             <Form.Label className="fw-bold">
               Note <span className="text-danger">*</span>
@@ -246,7 +246,7 @@ const CreateReview = ({ show, onHide, bookId, book, onSuccess }) => {
             </Card>
           )}
 
-          {/* Champ caché pour bookId */}
+          
           <input type="hidden" {...register("bookId")} />
           {errors.bookId && (
             <Alert variant="danger">

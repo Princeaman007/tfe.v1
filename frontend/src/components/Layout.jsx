@@ -11,7 +11,7 @@ const Layout = () => {
   } catch (error) {
     console.error("Erreur AuthContext dans Layout:", error);
     
-    // Affichage d'erreur si le contexte est cassé
+    
     return (
       <div className="container mt-5">
         <div className="alert alert-danger text-center">
@@ -31,7 +31,7 @@ const Layout = () => {
   const { isAuthenticated, user, logout, loading } = authData;
   const [collapsed, setCollapsed] = useState(false);
 
-  // Affichage de chargement
+  
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
@@ -45,7 +45,7 @@ const Layout = () => {
     );
   }
 
-  // Vérification de l'état d'authentification
+  
   if (!isAuthenticated) {
     return (
       <div className="container mt-5">
@@ -77,7 +77,7 @@ const Layout = () => {
       await logout();
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
-      // Forcer la déconnexion locale en cas d'erreur
+      
       localStorage.clear();
       window.location.href = '/login';
     }
