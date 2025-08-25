@@ -513,7 +513,7 @@ const ManageUsers = () => {
       <UserFormModal
         show={showCreateModal}
         onHide={() => setShowCreateModal(false)}
-        onSubmit={handleCreateUser}  // ← Celui-ci est OK (1 paramètre)
+        onSubmit={handleCreateUser} 
         title="Créer un Nouvel Utilisateur"
         mode="create"
         currentUserRole={user?.role}
@@ -528,7 +528,7 @@ const ManageUsers = () => {
           setShowEditModal(false);
           setSelectedUser(null);
         }}
-        onSubmit={(userData) => handleUpdateUser(selectedUser._id, userData)}  // ← Changez cette ligne !
+        onSubmit={(userData) => handleUpdateUser(selectedUser._id, userData)}  
         title="Modifier l'Utilisateur"
         mode="edit"
         currentUserRole={user?.role}

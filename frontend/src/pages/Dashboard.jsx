@@ -1,5 +1,5 @@
 import React from "react";
-import BooksList from "../components/BooksList"; // Assure-toi que le chemin est correct
+import BooksList from "../components/BooksList"; 
 
 const Dashboard = () => {
   return (

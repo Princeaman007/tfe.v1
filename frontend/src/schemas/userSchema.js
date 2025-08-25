@@ -1,4 +1,4 @@
-// src/schemas/userSchema.js
+
 import { z } from 'zod';
 
 // Schéma de base pour le nom

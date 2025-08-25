@@ -1,4 +1,4 @@
-// frontend/src/App.jsx — version corrigée
+
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";

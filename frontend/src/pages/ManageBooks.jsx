@@ -1,4 +1,4 @@
-// src/pages/ManageBooks.jsx
+
 import React, { useState, useEffect } from "react";
 import { Container, Button, Spinner, Pagination, Row, Col, Card, Alert } from "react-bootstrap";
 import axios from "axios";
@@ -148,7 +148,7 @@ const ManageBooks = () => {
       console.error("❌ Erreur création livre:", err);
       console.error("📋 Détails erreur:", err.response?.data);
 
-      // L'erreur sera gérée par BookFormModal
+      
       throw err;
     }
   };
@@ -181,7 +181,7 @@ const ManageBooks = () => {
       console.error("📤 Données envoyées:", data);
       console.error("🆔 Book ID:", bookId);
 
-      // L'erreur sera gérée par BookFormModal
+      
       throw err;
     }
   };
@@ -420,7 +420,7 @@ const ManageBooks = () => {
       <BookFormModal
         show={!!editBook}
         onHide={() => setEditBook(null)}
-        onSubmit={(data) => handleUpdate(editBook._id, data)}  // ← Changez cette ligne
+        onSubmit={(data) => handleUpdate(editBook._id, data)}  
         title="Modifier le Livre"
         mode="edit"
         initialData={editBook}

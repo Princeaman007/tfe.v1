@@ -1,5 +1,5 @@
-// src/schemas/rentalSchema.js
-import { z } from 'zod'; // ✅ Import manquant ajouté
+
+import { z } from 'zod'; 
 
 // Schéma de base pour ObjectId MongoDB
 const mongoIdSchema = z

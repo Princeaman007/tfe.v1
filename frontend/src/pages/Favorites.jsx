@@ -1,4 +1,4 @@
-// frontend/src/pages/Favorites.jsx
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Container, Row, Col, Card, Spinner, Alert, Button, Badge } from "react-bootstrap";

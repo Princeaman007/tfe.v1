@@ -74,7 +74,7 @@ const AddBook = () => {
     try {
       setSubmitError("");
       
-      console.log("📚 Ajout d'un nouveau livre...");
+      console.log(" Ajout d'un nouveau livre...");
       
       // Préparer les données selon votre validation backend
       const bookData = {
@@ -88,7 +88,7 @@ const AddBook = () => {
         coverImage: data.coverImage ? data.coverImage.trim() : undefined
       };
 
-      console.log("📋 Données envoyées:", bookData);
+      console.log(" Données envoyées:", bookData);
 
     const response = await axios.post(
   `${API_BASE_URL}/api/books`, 
@@ -101,7 +101,7 @@ const AddBook = () => {
   }
 );
 
-      console.log("✅ Livre créé:", response.data);
+      console.log(" Livre créé:", response.data);
       toast.success("Livre ajouté avec succès !");
       
       // Reset du formulaire
@@ -111,7 +111,7 @@ const AddBook = () => {
       navigate("/admin/books");
       
     } catch (error) {
-      console.error("❌ Erreur création livre:", error);
+      console.error(" Erreur création livre:", error);
       
       if (error.response?.data?.errors) {
         // Erreurs de validation express-validator

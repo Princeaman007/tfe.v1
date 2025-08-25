@@ -1,4 +1,4 @@
-// src/pages/MyRentals.jsx
+
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -205,7 +205,7 @@ const MyRentals = () => {
       // Ajouter les filtres selon l'onglet actif
       if (activeTab === "active") {
         params.status = "borrowed";
-        params.overdue = false; // Exclure les en retard
+        params.overdue = false; 
       } else if (activeTab === "returned") {
         params.status = "returned";
       } else if (activeTab === "overdue") {
@@ -272,7 +272,7 @@ const MyRentals = () => {
     try {
       console.log("Retour de livre:", selectedRental._id, data);
 
-      // Le schéma Zod gère la transformation
+      
       const response = await axios.post(
         `${API_BASE_URL}/api/rentals/return`,
         {
@@ -381,7 +381,7 @@ const MyRentals = () => {
     // S'assurer que la date est dans le futur
     const now = new Date();
     if (newDueDate <= now) {
-      newDueDate.setTime(now.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 jours à partir de maintenant
+      newDueDate.setTime(now.getTime() + (7 * 24 * 60 * 60 * 1000)); 
     }
 
     // Format pour datetime-local

@@ -64,9 +64,9 @@ const Profile = () => {
   // Fonction pour obtenir la couleur de l'avatar selon le rôle
   const getAvatarColor = (role) => {
     switch (role) {
-      case 'superAdmin': return { bg: '#dc3545', border: '#b02a37' }; // Rouge
-      case 'admin': return { bg: '#fd7e14', border: '#fd6300' }; // Orange
-      default: return { bg: '#007bff', border: '#0056b3' }; // Bleu
+      case 'superAdmin': return { bg: '#dc3545', border: '#b02a37' }; 
+      case 'admin': return { bg: '#fd7e14', border: '#fd6300' }; 
+      default: return { bg: '#007bff', border: '#0056b3' }; 
     }
   };
 
