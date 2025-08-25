@@ -74,7 +74,7 @@ const userSchema = new mongoose.Schema(
       language: { type: String, default: "fr", enum: ["fr", "en", "es"] },
       theme: { type: String, default: "light", enum: ["light", "dark"] }
     },
-    // Statistiques utilisateur
+    
     stats: {
       totalRentals: { type: Number, default: 0 },
       totalReviews: { type: Number, default: 0 },
@@ -82,11 +82,11 @@ const userSchema = new mongoose.Schema(
       averageRating: { type: Number, default: 0 },
       joinedAt: { type: Date, default: Date.now }
     },
-    // Métadonnées de gestion
+    
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null // null si inscription normale, ID de l'admin si créé par admin
+      default: null 
     },
     lastModifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -94,20 +94,20 @@ const userSchema = new mongoose.Schema(
       default: null
     },
     notes: {
-      type: String, // Notes internes pour les admins
+      type: String, 
       trim: true,
       maxlength: [500, "Les notes ne peuvent pas dépasser 500 caractères"]
     }
   },
   { 
     timestamps: true,
-    // Optimisation des index
+    
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
   }
 );
 
-// Index pour optimiser les requêtes
+
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isVerified: 1 });
@@ -138,7 +138,7 @@ userSchema.virtual('initials').get(function() {
     .slice(0, 2);
 });
 
-// Méthodes d'instance
+
 userSchema.methods.updateLoginInfo = function() {
   this.lastLoginAt = new Date();
   this.loginAttempts = 0;
@@ -147,7 +147,7 @@ userSchema.methods.updateLoginInfo = function() {
 };
 
 userSchema.methods.incLoginAttempts = function() {
-  // Si nous avons un verrou précédent et qu'il a expiré, redémarrer à 1
+  
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return this.updateOne({
       $unset: { lockUntil: 1 },
@@ -157,9 +157,9 @@ userSchema.methods.incLoginAttempts = function() {
   
   const updates = { $inc: { loginAttempts: 1 } };
   
-  // Si nous avons atteint le maximum d'tentatives et qu'il n'y a pas de verrou, verrouiller le compte
+  
   const maxAttempts = 5;
-  const lockTime = 2 * 60 * 60 * 1000; // 2 heures
+  const lockTime = 2 * 60 * 60 * 1000;
   
   if (this.loginAttempts + 1 >= maxAttempts && !this.isLocked) {
     updates.$set = { lockUntil: Date.now() + lockTime };
@@ -187,7 +187,7 @@ userSchema.methods.canPerformAction = function(action) {
   return permissions[this.role]?.includes(action) || false;
 };
 
-// Méthodes statiques
+
 userSchema.statics.findActiveUsers = function() {
   return this.find({ isActive: true, isVerified: true });
 };
@@ -213,7 +213,7 @@ userSchema.statics.getStatistics = function() {
 
 // Middleware pre-save
 userSchema.pre('save', function(next) {
-  // Mise à jour automatique de lastModifiedBy lors de la modification
+  
   if (this.isModified() && !this.isNew) {
     this.updatedAt = new Date();
   }
@@ -221,8 +221,8 @@ userSchema.pre('save', function(next) {
   // Validation additionnelle pour les rôles
   if (this.isModified('role')) {
     if (this.role === 'superAdmin') {
-      // Logique supplémentaire pour la création de superAdmin
-      console.log(`🔥 Création/modification d'un superAdmin: ${this.email}`);
+      
+      console.log(` Création/modification d'un superAdmin: ${this.email}`);
     }
   }
   
@@ -231,13 +231,13 @@ userSchema.pre('save', function(next) {
 
 // Middleware post-save
 userSchema.post('save', function(doc) {
-  console.log(`✅ Utilisateur sauvegardé: ${doc.email} (${doc.role})`);
+  console.log(` Utilisateur sauvegardé: ${doc.email} (${doc.role})`);
 });
 
 // Middleware pre-remove
 userSchema.pre('remove', function(next) {
-  console.log(`🗑️ Suppression de l'utilisateur: ${this.email}`);
-  // Ici on pourrait ajouter la logique pour nettoyer les données associées
+  console.log(` Suppression de l'utilisateur: ${this.email}`);
+  
   next();
 });
 

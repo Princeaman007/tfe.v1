@@ -27,7 +27,7 @@ export const getAllUsers = async (req, res) => {
     
     // Récupération des utilisateurs avec pagination
     const users = await User.find(query)
-      .select("-password") // Exclure le mot de passe
+      .select("-password") 
       .sort({ createdAt: -1 })
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
@@ -43,7 +43,7 @@ export const getAllUsers = async (req, res) => {
       hasPrevPage: currentPage > 1
     });
   } catch (error) {
-    console.error("❌ Erreur getAllUsers:", error);
+    console.error(" Erreur getAllUsers:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -60,7 +60,7 @@ export const getUserById = async (req, res) => {
     
     res.status(200).json(user);
   } catch (error) {
-    console.error("❌ Erreur getUserById:", error);
+    console.error(" Erreur getUserById:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -69,8 +69,8 @@ export const getUserById = async (req, res) => {
 export const createUser = async (req, res) => {
   try {
 
-    console.log("🔍 CREATE - Headers:", req.headers['content-type']);
-    console.log("🔍 CREATE - Body:", req.body);
+    console.log(" CREATE - Headers:", req.headers['content-type']);
+    console.log(" CREATE - Body:", req.body);
     const { name, email, password, role = "user" } = req.body;
     
     // Validation des champs requis
@@ -104,7 +104,7 @@ export const createUser = async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      isVerified: true // L'utilisateur créé par un admin est automatiquement vérifié
+      isVerified: true 
     });
     
     await newUser.save();
@@ -117,7 +117,7 @@ export const createUser = async (req, res) => {
       user: userResponse 
     });
   } catch (error) {
-    console.error("❌ Erreur createUser:", error);
+    console.error(" Erreur createUser:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -126,23 +126,23 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
 
-     console.log("🔍 Headers reçues:", req.headers['content-type']);
-    console.log("🔍 Raw body:", req.body);
-    console.log("🔍 typeof body:", typeof req.body);
-    console.log("🔍 Body keys:", Object.keys(req.body || {}));
+     console.log(" Headers reçues:", req.headers['content-type']);
+    console.log(" Raw body:", req.body);
+    console.log(" typeof body:", typeof req.body);
+    console.log(" Body keys:", Object.keys(req.body || {}));
     const { id } = req.params;
     const { name, email, role, isVerified } = req.body;
 
-   console.log("🔍 Backend - ID utilisateur:", id);
-    console.log("🔍 Backend - Données reçues:", { name, email, role, isVerified });
-    console.log("🔍 Backend - Utilisateur connecté role:", req.user?.role);
+   console.log(" Backend - ID utilisateur:", id);
+    console.log(" Backend - Données reçues:", { name, email, role, isVerified });
+    console.log(" Backend - Utilisateur connecté role:", req.user?.role);
     // Vérifier si l'utilisateur existe
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-      console.log("🔍 Backend - Utilisateur trouvé:", {
+      console.log(" Backend - Utilisateur trouvé:", {
       currentRole: user.role,
       targetRole: role
     });
@@ -191,7 +191,7 @@ export const updateUser = async (req, res) => {
       user: updatedUser 
     });
   } catch (error) {
-    console.error("❌ Erreur updateUser:", error);
+    console.error(" Erreur updateUser:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -225,7 +225,7 @@ export const changeUserPassword = async (req, res) => {
     
     res.status(200).json({ message: "Mot de passe mis à jour avec succès" });
   } catch (error) {
-    console.error("❌ Erreur changeUserPassword:", error);
+    console.error(" Erreur changeUserPassword:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -296,7 +296,7 @@ export const getUserStats = async (req, res) => {
       }, {})
     });
   } catch (error) {
-    console.error("❌ Erreur getUserStats:", error);
+    console.error(" Erreur getUserStats:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -326,7 +326,7 @@ export const toggleUserVerification = async (req, res) => {
       user: updatedUser 
     });
   } catch (error) {
-    console.error("❌ Erreur toggleUserVerification:", error);
+    console.error(" Erreur toggleUserVerification:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -352,7 +352,7 @@ export const updateProfile = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   try {
-    // ✅ Utiliser les mêmes noms que la validation
+    //  Utiliser les mêmes noms que la validation
     const { currentPassword, newPassword } = req.body;
     
     console.log('Changement de mot de passe pour user:', req.user.id);
@@ -367,7 +367,7 @@ export const changePassword = async (req, res) => {
       return res.status(404).json({ message: "Utilisateur non trouvé." });
     }
 
-    // ✅ Vérifier que currentPassword n'est pas undefined
+    //  Vérifier que currentPassword n'est pas undefined
     if (!currentPassword) {
       return res.status(400).json({ message: "Mot de passe actuel requis." });
     }
@@ -377,8 +377,8 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ message: "Ancien mot de passe incorrect." });
     }
 
-    // ✅ Hasher le nouveau mot de passe
-    user.password = await bcrypt.hash(newPassword, 12); // 12 rounds recommandés
+    //  Hasher le nouveau mot de passe
+    user.password = await bcrypt.hash(newPassword, 12); 
     await user.save();
 
     console.log('Mot de passe mis à jour avec succès pour user:', req.user.id);

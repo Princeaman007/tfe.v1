@@ -1,4 +1,4 @@
-// backend/routes/favoriteRoutes.js
+
 import express from "express";
 import {
   getUserFavorites,
@@ -9,9 +9,9 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// ✅ Routes protégées (utilisateur connecté requis)
-router.get("/", protect, getUserFavorites);                    // GET /api/favorites
-router.post("/toggle", protect, toggleFavorite);               // POST /api/favorites/toggle
-router.get("/check/:bookId", protect, checkFavoriteStatus);    // GET /api/favorites/check/:bookId
+//Routes protégées (utilisateur connecté requis)
+router.get("/", protect, getUserFavorites);                    
+router.post("/toggle", protect, toggleFavorite);               
+router.get("/check/:bookId", protect, checkFavoriteStatus);    
 
 export default router;

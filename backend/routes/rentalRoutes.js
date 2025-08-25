@@ -15,7 +15,7 @@ import {
 import { protect } from "../middleware/authMiddleware.js";
 import Rental from "../models/rentalModel.js";
 
-// Import des validateurs
+
 import {
   validateCreateRental,
   validateUpdateRental,
@@ -243,7 +243,7 @@ router.post("/admin/send-fine-notifications",
   }
 );
 
-// Routes supplémentaires avec validation
+
 
 // Prolonger la date d'échéance
 router.put("/:id/extend", 
@@ -283,7 +283,7 @@ router.put("/:id/extend",
   }
 );
 
-// Mettre à jour une location (admin)
+
 router.put("/:id", 
   protect,
   isAdminOrSuperAdmin,

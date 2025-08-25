@@ -3,7 +3,7 @@ import {
   createCheckoutSession,
   handleStripeWebhook,
   payFine
-} from '../controllers/paymentController.js'; // ✅ Import correct
+} from '../controllers/paymentController.js'; 
 
 import { protect } from "../middleware/authMiddleware.js";
 import { verifyPayment } from "../controllers/paymentController.js";

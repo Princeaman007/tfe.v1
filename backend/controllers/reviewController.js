@@ -5,7 +5,7 @@ import Book from "../models/bookModel.js";
 export const addReview = async (req, res) => {
   try {
     const { bookId, rating, comment } = req.body;
-    const userId = req.user._id; // L'utilisateur connecté
+    const userId = req.user._id; 
 
     // Vérifier si le livre existe
     const book = await Book.findById(bookId);
@@ -34,13 +34,13 @@ export const addReview = async (req, res) => {
   }
 };
 
-// ✅ Récupérer les avis d’un livre
+// Récupérer les avis d’un livre
 export const getReviewsForBook = async (req, res) => {
   try {
     const { bookId } = req.params;
 
     const reviews = await Review.find({ book: bookId })
-      .populate("user", "name") // Récupérer le nom de l'utilisateur
+      .populate("user", "name") 
       .sort({ createdAt: -1 });
 
     res.status(200).json(reviews);
@@ -49,14 +49,14 @@ export const getReviewsForBook = async (req, res) => {
   }
 };
 
-// ✅ Modifier un avis existant (commentaire ou note)
+// Modifier un avis existant
 export const updateReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
     const { rating, comment } = req.body;
     const userId = req.user._id;
 
-    console.log("🔧 Requête de mise à jour :", {
+    console.log(" Requête de mise à jour :", {
       reviewId,
       userId,
       rating,
@@ -91,14 +91,14 @@ export const updateReview = async (req, res) => {
 
     res.status(200).json({ message: "Avis mis à jour avec succès", review });
   } catch (error) {
-    console.error("❌ Erreur lors de la mise à jour de l'avis :", error);
+    console.error(" Erreur lors de la mise à jour de l'avis :", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
 
 
-// Supprimer une review (utilisateur ou admin)
+// Supprimer une review 
 export const deleteReview = async (req, res) => {
   try {
     const { reviewId } = req.params;
@@ -109,7 +109,7 @@ export const deleteReview = async (req, res) => {
       return res.status(404).json({ message: "Avis introuvable" });
     }
 
-    // Autoriser seulement l’auteur du commentaire (ou admin éventuellement)
+    // Autoriser seulement l’auteur du commentaire
     if (review.user.toString() !== userId.toString()) {
       return res.status(403).json({ message: "Non autorisé à supprimer cet avis" });
     }

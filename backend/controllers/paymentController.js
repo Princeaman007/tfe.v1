@@ -11,18 +11,18 @@ const frontendUrl = process.env.FRONTEND_URL;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 if (!stripeSecretKey) {
-  throw new Error("❌ STRIPE_SECRET_KEY manquante dans les variables d'environnement.");
+  throw new Error(" STRIPE_SECRET_KEY manquante dans les variables d'environnement.");
 }
 if (!frontendUrl) {
-  throw new Error("❌ FRONTEND_URL manquante dans les variables d'environnement.");
+  throw new Error(" FRONTEND_URL manquante dans les variables d'environnement.");
 }
 if (!stripeWebhookSecret) {
-  console.warn("⚠️ STRIPE_WEBHOOK_SECRET non défini. Le webhook Stripe risque d’échouer.");
+  console.warn(" STRIPE_WEBHOOK_SECRET non défini. Le webhook Stripe risque d’échouer.");
 }
 
 const stripe = new Stripe(stripeSecretKey);
 
-// ✅ Créer une session de paiement Stripe pour louer un livre
+// Créer une session de paiement Stripe pour louer un livre
 export const createCheckoutSession = async (req, res) => {
   try {
     const { bookId } = req.body;
@@ -68,29 +68,29 @@ export const createCheckoutSession = async (req, res) => {
     res.status(200).json({ url: session.url });
 
   } catch (error) {
-    console.error("❌ Erreur Stripe :", error);
+    console.error(" Erreur Stripe :", error);
     res.status(500).json({ message: "Erreur lors de la création du paiement.", error: error.message });
   }
 };
 
 export const verifyPayment = async (req, res) => {
   try {
-    console.log("💳 === DÉBUT VÉRIFICATION PAIEMENT ===");
+    console.log(" === DÉBUT VÉRIFICATION PAIEMENT ===");
     
     const { sessionId } = req.body;
     if (!sessionId) {
-      console.log("❌ Session ID manquant");
+      console.log(" Session ID manquant");
       return res.status(400).json({ message: "Session ID manquant" });
     }
 
-    console.log("🔍 Récupération de la session Stripe:", sessionId);
+    console.log(" Récupération de la session Stripe:", sessionId);
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     if (!session) {
-      console.log("❌ Session Stripe introuvable");
+      console.log(" Session Stripe introuvable");
       return res.status(404).json({ message: "Session introuvable" });
     }
 
-    console.log("✅ Session Stripe trouvée:", {
+    console.log("Session Stripe trouvée:", {
       id: session.id,
       payment_status: session.payment_status,
       metadata: session.metadata
@@ -99,7 +99,7 @@ export const verifyPayment = async (req, res) => {
     // Vérifier si la location existe déjà
     const existingRental = await Rental.findOne({ stripeSessionId: session.id });
     if (existingRental) {
-      console.log("ℹ️ Location déjà existante:", existingRental._id);
+      console.log(" Location déjà existante:", existingRental._id);
       return res.status(200).json({
         message: "Paiement déjà vérifié",
         rental: {
@@ -118,21 +118,21 @@ export const verifyPayment = async (req, res) => {
     const bookId = session.metadata.bookId;
 
     if (!userId || !bookId) {
-      console.log("❌ Métadonnées manquantes:", { userId, bookId });
+      console.log(" Métadonnées manquantes:", { userId, bookId });
       return res.status(400).json({ message: "Données manquantes dans la session Stripe" });
     }
 
-    console.log("📝 Données de location:", { userId, bookId });
+    console.log(" Données de location:", { userId, bookId });
 
-    // ✅ VÉRIFIER ET METTRE À JOUR LE STOCK DU LIVRE
-    console.log("📖 Vérification du livre et du stock...");
+    //  VÉRIFIER ET METTRE À JOUR LE STOCK DU LIVRE
+    console.log(" Vérification du livre et du stock...");
     const book = await Book.findById(bookId);
     if (!book) {
-      console.log("❌ Livre non trouvé:", bookId);
+      console.log(" Livre non trouvé:", bookId);
       return res.status(404).json({ message: "Livre non trouvé" });
     }
 
-    console.log("📊 Stock actuel du livre:", {
+    console.log(" Stock actuel du livre:", {
       title: book.title,
       availableCopies: book.availableCopies,
       borrowedCount: book.borrowedCount || 0
@@ -140,15 +140,15 @@ export const verifyPayment = async (req, res) => {
 
     // Vérifier la disponibilité
     if (book.availableCopies <= 0) {
-      console.log("❌ Stock épuisé");
+      console.log(" Stock épuisé");
       return res.status(400).json({ message: "Livre non disponible" });
     }
 
     // Créer la location
-    console.log("📝 Création de la location...");
+    console.log(" Création de la location...");
     const borrowedAt = new Date();
     const dueDate = new Date();
-    dueDate.setDate(borrowedAt.getDate() + 30); // 30 jours de location
+    dueDate.setDate(borrowedAt.getDate() + 30); 
 
     const rental = await Rental.create({
       user: userId,
@@ -159,16 +159,16 @@ export const verifyPayment = async (req, res) => {
       status: "borrowed",
     });
 
-    console.log("✅ Location créée:", rental._id);
+    console.log(" Location créée:", rental._id);
 
-    // ✅ DÉCRÉMENTER LE STOCK ET INCRÉMENTER borrowedCount
-    console.log("📊 Mise à jour du stock...");
+    //  DÉCRÉMENTER LE STOCK ET INCRÉMENTER borrowedCount
+    console.log("Mise à jour du stock...");
     const updatedBook = await Book.findByIdAndUpdate(
       bookId,
       {
         $inc: {
-          availableCopies: -1,        // ✅ ENLEVER 1 DU STOCK
-          borrowedCount: 1            // ✅ AJOUTER 1 AUX EMPRUNTS
+          availableCopies: -1,        
+          borrowedCount: 1            
         }
       },
       { 
@@ -177,14 +177,14 @@ export const verifyPayment = async (req, res) => {
       }
     );
 
-    console.log("📊 Stock mis à jour:", {
+    console.log(" Stock mis à jour:", {
       title: updatedBook.title,
       availableCopies: updatedBook.availableCopies,
       borrowedCount: updatedBook.borrowedCount,
       stockChange: "Stock décrementé et borrowedCount incrémenté"
     });
 
-    console.log("🎉 Location et stock mis à jour avec succès !");
+    console.log(" Location et stock mis à jour avec succès !");
 
     res.status(201).json({
       success: true,
@@ -200,11 +200,11 @@ export const verifyPayment = async (req, res) => {
       }
     });
 
-    console.log("💳 === FIN VÉRIFICATION PAIEMENT (SUCCÈS) ===");
+    console.log(" === FIN VÉRIFICATION PAIEMENT (SUCCÈS) ===");
 
   } catch (error) {
-    console.error("❌ === ERREUR VÉRIFICATION PAIEMENT ===");
-    console.error("❌ Erreur complète:", error);
+    console.error(" === ERREUR VÉRIFICATION PAIEMENT ===");
+    console.error(" Erreur complète:", error);
     res.status(500).json({ 
       success: false,
       message: "Erreur serveur", 
@@ -214,7 +214,7 @@ export const verifyPayment = async (req, res) => {
 };
 
 
-// ✅ Webhook Stripe
+//  Webhook Stripe
 export const handleStripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   if (!sig) return res.status(400).json({ message: "Signature Stripe manquante." });
@@ -223,24 +223,24 @@ export const handleStripeWebhook = async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, stripeWebhookSecret);
   } catch (err) {
-    console.error("❌ Erreur signature webhook :", err.message);
+    console.error(" Erreur signature webhook :", err.message);
     return res.status(400).json({ message: "Signature Stripe invalide", error: err.message });
   }
 
   // Gérer les événements
   switch (event.type) {
     case "checkout.session.completed":
-      console.log("✅ Paiement réussi - session :", event.data.object.id);
-      // Tu peux ajouter des logs ou autres traitements ici si nécessaire
+      console.log(" Paiement réussi - session :", event.data.object.id);
+      
       break;
     default:
-      console.log(`ℹ️ Événement non géré : ${event.type}`);
+      console.log(`Événement non géré : ${event.type}`);
   }
 
   res.status(200).json({ received: true });
 };
 
-// ✅ Paiement des amendes
+//  Paiement des amendes
 export const payFine = async (req, res) => {
   try {
     const { rentalId } = req.body;
@@ -284,7 +284,7 @@ export const payFine = async (req, res) => {
     res.json({ url: session.url });
 
   } catch (error) {
-    console.error("❌ Erreur paiement amende :", error);
+    console.error(" Erreur paiement amende :", error);
     res.status(500).json({ message: "Erreur lors du paiement de l’amende", error: error.message });
   }
 };

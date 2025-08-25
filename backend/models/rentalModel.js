@@ -8,9 +8,9 @@ const rentalSchema = new mongoose.Schema(
     borrowedAt: { type: Date, default: Date.now },
     dueDate: { 
       type: Date, 
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 jours
+      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) 
     },
-    returnedAt: { type: Date }, // ✅ Date de retour effective
+    returnedAt: { type: Date },
     status: { type: String, enum: ["borrowed", "returned"], default: "borrowed" },
     overdue: { type: Boolean, default: false },
     fineAmount: { type: Number, default: 0 },

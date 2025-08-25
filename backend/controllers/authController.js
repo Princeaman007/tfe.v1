@@ -6,7 +6,7 @@ import sendEmail from "../utils/sendEmail.js";
 
 dotenv.config();
 
-// Fonction pour générer un token JWT (24h au lieu d'1h)
+// Fonction pour générer un token JWT 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "24h" });
 };

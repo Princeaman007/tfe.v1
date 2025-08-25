@@ -24,14 +24,14 @@ import { handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// ✅ Inscription (Enregistrement)
+//  Inscription (Enregistrement)
 router.post("/register", 
   validateRegisterUser, 
   handleValidationErrors, 
   register
 );
 
-// ✅ Vérification de l'email
+//  Vérification de l'email
 // AJOUT: Validation du token de vérification
 router.get("/verify-email/:token", 
   validateEmailVerification,
@@ -39,26 +39,26 @@ router.get("/verify-email/:token",
   verifyEmail
 );
 
-// ✅ Connexion (Login) - Stocke le JWT dans un cookie sécurisé
+//  Connexion (Login) - Stocke le JWT dans un cookie sécurisé
 router.post("/login", 
   validateLoginUser, 
   handleValidationErrors, 
   login
 );
 
-// ✅ Vérification du Token (middleware de vérification)
+//  Vérification du Token (middleware de vérification)
 router.get("/verify", verifyToken);
 
-// ✅ NOUVEAU: Rafraîchissement du token
+//  NOUVEAU: Rafraîchissement du token
 router.post("/refresh-token", protect, refreshToken);
 
-// ✅ Récupérer le profil utilisateur (Protégé)
+//  Récupérer le profil utilisateur (Protégé)
 router.get("/profile", 
   protect, 
   getProfile
 );
 
-// ✅ Mot de passe oublié
+// Mot de passe oublié
 // AJOUT: Validation de l'email pour reset
 router.post("/forgot-password", 
   validateResetPassword,
@@ -66,7 +66,7 @@ router.post("/forgot-password",
   forgotPassword
 );
 
-// ✅ Réinitialisation du mot de passe
+//  Réinitialisation du mot de passe
 // AJOUT: Validation du token et nouveau mot de passe
 router.put("/reset-password/:token", 
   validateConfirmResetPassword,
@@ -74,8 +74,8 @@ router.put("/reset-password/:token",
   resetPassword
 );
 
-// ✅ Déconnexion (Efface le cookie du token)
-// Pas de validation nécessaire pour logout
+//  Déconnexion (Efface le cookie du token)
+
 router.post("/logout", logout);
 
 export default router;

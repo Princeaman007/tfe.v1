@@ -50,7 +50,7 @@ export const validateCreateBook = [
     .isInt({ min: 0 })
     .withMessage('Le nombre de copies disponibles doit être un entier positif ou nul'),
 
-  // ✅ CORRECTION: Permettre que ces champs soient absents ou vides à la création
+  // CORRECTION: Permettre que ces champs soient absents ou vides à la création
   // Ils seront initialisés par défaut dans le contrôleur
   body('borrowedCount')
     .optional()
@@ -114,7 +114,7 @@ export const validateUpdateBook = [
     .isInt({ min: 0 })
     .withMessage('Le nombre de copies disponibles doit être un entier positif ou nul'),
 
-  // ✅ Pour la mise à jour, interdire la modification des stats
+  // Pour la mise à jour, interdire la modification des stats
   body('borrowedCount')
     .not().exists()
     .withMessage('Le nombre d\'emprunts ne peut pas être modifié manuellement'),

@@ -7,8 +7,6 @@ import {
   updateReview 
 } from "../controllers/reviewController.js";
 import { protect } from "../middleware/authMiddleware.js";
-
-// ✅ AJOUT: Import des validateurs
 import {
 
   
@@ -25,7 +23,7 @@ import { handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// ✅ Middleware pour vérifier si c'est admin/superAdmin
+//  Middleware pour vérifier si c'est admin/superAdmin
 const isAdminOrSuperAdmin = (req, res, next) => {
   const role = req.user?.role;
   if (role === "admin" || role === "superAdmin") {
@@ -37,18 +35,18 @@ const isAdminOrSuperAdmin = (req, res, next) => {
   });
 };
 
-// 🔹 Routes principales
+//  Routes principales
 
-// ✅ Ajouter un avis (utilisateur connecté)
+//  Ajouter un avis (utilisateur connecté)
 router.post(
   "/",
   protect,
-  validateCreateReview,   // ✅ vérifie le BODY, pas les params
-  handleValidationErrors, // renvoie idéalement 422 en cas d'erreurs
+  validateCreateReview,   
+  handleValidationErrors, 
   addReview
 );
 
-// ✅ Mes avis (avec filtres et pagination optionnels)
+// Mes avis (avec filtres et pagination optionnels)
 router.get("/me", 
   protect,
   validateReviewSearch,
@@ -57,7 +55,7 @@ router.get("/me",
   getMyReviews
 );
 
-// ✅ Modifier mon avis
+//  Modifier mon avis
 router.put(
   "/:reviewId",
   protect,
@@ -67,7 +65,7 @@ router.put(
   updateReview
 );
 
-// ✅ Supprimer mon avis
+// Supprimer mon avis
 router.delete("/:reviewId", 
   protect,
   validateReviewIdParam,
@@ -75,17 +73,17 @@ router.delete("/:reviewId",
   deleteReview
 );
 
-// ✅ Avis d'un livre spécifique (public avec pagination)
+//  Avis d'un livre spécifique (public avec pagination)
 router.get("/:bookId", 
-  validateReviewStats, // Valide que bookId est un ObjectId MongoDB
+  validateReviewStats, 
   validateReviewPagination,
   handleValidationErrors,
   getReviewsForBook
 );
 
-// 🔹 Routes administratives
+//  Routes administratives
 
-// ✅ Tous les avis (admin seulement)
+//  Tous les avis (admin seulement)
 router.get("/admin/all", 
   protect,
   isAdminOrSuperAdmin,
@@ -94,8 +92,8 @@ router.get("/admin/all",
   handleValidationErrors,
   async (req, res) => {
     try {
-      // Cette logique devrait être dans le controller
-      // Exemple basique ici
+      
+      
       res.status(200).json({
         success: true,
         message: "Fonctionnalité à implémenter dans le controller",
@@ -111,7 +109,7 @@ router.get("/admin/all",
   }
 );
 
-// ✅ Signaler un avis inapproprié
+// Signaler un avis inapproprié
 router.post("/:reviewId/report", 
   protect,
   validateReviewIdParam,
@@ -122,8 +120,7 @@ router.post("/:reviewId/report",
       const { reason, description } = req.body;
       const reviewId = req.params.reviewId;
       
-      // Logique de signalement à implémenter
-      // Exemple : créer un document Report ou ajouter un flag
+     
       
       res.status(200).json({
         success: true,
@@ -144,7 +141,7 @@ router.post("/:reviewId/report",
   }
 );
 
-// ✅ Statistiques d'avis par livre (public ou admin)
+//  Statistiques d'avis par livre (public ou admin)
 router.get("/stats/:bookId", 
   validateReviewStats,
   handleValidationErrors,
@@ -152,8 +149,7 @@ router.get("/stats/:bookId",
     try {
       const { bookId } = req.params;
       
-      // Cette logique devrait être dans le controller
-      // Exemple de statistiques à calculer
+      
       const stats = {
         totalReviews: 0,
         averageRating: 0,
@@ -176,14 +172,14 @@ router.get("/stats/:bookId",
   }
 );
 
-// ✅ Modérer un avis (admin seulement)
+//  Modérer un avis (admin seulement)
 router.put("/:reviewId/moderate", 
   protect,
   isAdminOrSuperAdmin,
   validateReviewIdParam,
   async (req, res) => {
     try {
-      const { action, reason } = req.body; // approve, reject, delete
+      const { action, reason } = req.body; 
       const reviewId = req.params.reviewId;
       
       // Logique de modération à implémenter
@@ -208,7 +204,7 @@ router.put("/:reviewId/moderate",
   }
 );
 
-// ✅ Vérifier si l'utilisateur peut laisser un avis
+// Vérifier si l'utilisateur peut laisser un avis
 router.post("/can-review", 
   protect,
   validateReviewPermission,
@@ -218,12 +214,9 @@ router.post("/can-review",
       const { bookId } = req.body;
       const userId = req.user._id;
       
-      // Logique à implémenter :
-      // 1. Vérifier si l'utilisateur a emprunté le livre
-      // 2. Vérifier s'il n'a pas déjà laissé d'avis
-      // 3. Autres règles métier
+     
       
-      const canReview = true; // Placeholder
+      const canReview = true; 
       
       res.status(200).json({
         success: true,

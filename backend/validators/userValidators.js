@@ -376,10 +376,10 @@ export const validateUserSearch = [
 
 // Validateur pour la vérification d'email
 export const validateEmailVerification = [
-  param('token')  // ✅ Changer body en param
+  param('token')  
     .notEmpty()
     .withMessage('Le token de vérification est obligatoire')
-    .isLength({ min: 32, max: 500 })  // ✅ JWT peut être plus long que 128
+    .isLength({ min: 32, max: 500 })  
     .withMessage('Token de vérification invalide')
 ];
 

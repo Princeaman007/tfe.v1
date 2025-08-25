@@ -18,7 +18,7 @@ import {
   isSuperAdmin,
 } from "../middleware/authMiddleware.js";
 
-// ✅ AJOUT: Import des validateurs
+
 import {
   validateRegisterUser,
   validateUpdateUserProfile,
@@ -34,9 +34,9 @@ import { handleValidationErrors } from '../middleware/validation.js';
 
 const router = express.Router();
 
-// 🔹 Routes accessibles à tous les utilisateurs connectés
+//  Routes accessibles à tous les utilisateurs connectés
 
-// ✅ Mettre à jour son profil
+//  Mettre à jour son profil
 router.put("/update-profile", 
   protect, 
   isVerified,
@@ -45,7 +45,7 @@ router.put("/update-profile",
   updateProfile
 );
 
-// ✅ Changer son mot de passe
+//  Changer son mot de passe
 router.put("/change-password", 
   protect, 
   isVerified,
@@ -56,7 +56,7 @@ router.put("/change-password",
 
 
 
-// ✅ BONUS: Gérer ses favoris
+//  BONUS: Gérer ses favoris
 router.post("/favorites", 
   protect,
   isVerified,
@@ -67,7 +67,7 @@ router.post("/favorites",
       const { bookId } = req.body;
       const userId = req.user._id;
       
-      // Logique à implémenter dans le controller
+      
       res.status(200).json({
         success: true,
         message: "Favori ajouté/retiré avec succès"
@@ -82,7 +82,7 @@ router.post("/favorites",
   }
 );
 
-// ✅ BONUS: Récupérer ses propres statistiques
+// BONUS: Récupérer ses propres statistiques
 router.get("/me/stats", 
   protect,
   isVerified,
@@ -110,9 +110,9 @@ router.get("/me/stats",
   }
 );
 
-// 🔹 Routes réservées au SuperAdmin uniquement
+//  Routes réservées au SuperAdmin uniquement
 
-// ✅ Tous les utilisateurs (avec recherche et pagination)
+//  Tous les utilisateurs (avec recherche et pagination)
 router.get("/", 
   protect, 
   isSuperAdmin,
@@ -122,14 +122,14 @@ router.get("/",
   getAllUsers
 );
 
-// ✅ Statistiques globales des utilisateurs
+//  Statistiques globales des utilisateurs
 router.get("/stats", 
   protect, 
   isSuperAdmin, 
   getUserStats
 );
 
-// ✅ Un utilisateur par ID
+//  Un utilisateur par ID
 router.get("/:id", 
   protect, 
   isSuperAdmin,
@@ -138,33 +138,33 @@ router.get("/:id",
   getUserById
 );
 
-// ✅ Créer un utilisateur (admin)
+//  Créer un utilisateur (admin)
 router.post("/", 
   protect, 
   isSuperAdmin,
-  validateAdminCreateUser,     // ✅ Gardez uniquement celui-ci
+  validateAdminCreateUser,   
   handleValidationErrors,
   createUser
 );
 
-// ✅ Modifier un utilisateur (admin)
+// Modifier un utilisateur (admin)
 router.put("/:id", 
   protect, 
   isSuperAdmin,
   validateUserId,
-  validateAdminUpdateUser, // Validation spéciale admin (peut modifier role, etc.)
+  validateAdminUpdateUser, 
   handleValidationErrors,
   updateUser
 );
 
-// ✅ Modifier le mot de passe d'un utilisateur (admin)
+//  Modifier le mot de passe d'un utilisateur (admin)
 router.put("/:id/password", 
   protect, 
   isSuperAdmin,
   validateUserId,
-  // Validation spéciale pour reset de mot de passe admin
+  
   (req, res, next) => {
-    // Validation inline pour mot de passe admin
+    
     const { body } = require('express-validator');
     
     return [
@@ -189,7 +189,7 @@ router.put("/:id/password",
   changeUserPassword
 );
 
-// ✅ Basculer la vérification email d'un utilisateur
+// Basculer la vérification email d'un utilisateur
 router.patch("/:id/verify", 
   protect, 
   isSuperAdmin,
@@ -209,7 +209,7 @@ router.patch("/:id/verify",
   toggleUserVerification
 );
 
-// ✅ Supprimer un utilisateur
+// Supprimer un utilisateur
 router.delete("/:id", 
   protect, 
   isSuperAdmin,
@@ -218,9 +218,9 @@ router.delete("/:id",
   deleteUser
 );
 
-// 🔹 BONUS: Routes administratives supplémentaires
+// BONUS: Routes administratives supplémentaires
 
-// ✅ Verrouiller/déverrouiller un utilisateur
+//  Verrouiller/déverrouiller un utilisateur
 router.patch("/:id/lock", 
   protect,
   isSuperAdmin,
@@ -247,7 +247,7 @@ router.patch("/:id/lock",
       const { lockUntil, reason } = req.body;
       const userId = req.params.id;
       
-      // Logique de verrouillage à implémenter
+      
       
       res.status(200).json({
         success: true,
@@ -264,7 +264,7 @@ router.patch("/:id/lock",
   }
 );
 
-// ✅ Réinitialiser les tentatives de connexion
+//  Réinitialiser les tentatives de connexion
 router.patch("/:id/reset-attempts", 
   protect,
   isSuperAdmin,
@@ -274,7 +274,7 @@ router.patch("/:id/reset-attempts",
     try {
       const userId = req.params.id;
       
-      // Logique de reset à implémenter
+   
       
       res.status(200).json({
         success: true,
@@ -291,7 +291,7 @@ router.patch("/:id/reset-attempts",
   }
 );
 
-// ✅ Historique des actions d'un utilisateur
+// Historique des actions d'un utilisateur
 router.get("/:id/activity", 
   protect,
   isSuperAdmin,
@@ -301,7 +301,7 @@ router.get("/:id/activity",
     try {
       const userId = req.params.id;
       
-      // Logique pour récupérer l'historique (rentals, reviews, etc.)
+      
       
       res.status(200).json({
         success: true,

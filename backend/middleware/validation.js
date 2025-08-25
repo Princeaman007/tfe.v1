@@ -5,7 +5,7 @@ export const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   
   if (!errors.isEmpty()) {
-    // Formatage des erreurs pour une réponse claire
+    
     const formattedErrors = errors.array().map(error => ({
       field: error.path || error.param,
       message: error.msg,
@@ -26,7 +26,7 @@ export const handleValidationErrors = (req, res, next) => {
 
 /**
  * Middleware de validation conditionnel
- * Permet de continuer même avec des erreurs (utile pour certains cas)
+ * 
  */
 export const handleValidationWarnings = (req, res, next) => {
   const errors = validationResult(req);
@@ -49,7 +49,7 @@ export const sanitizeValidatedFields = (allowedFields) => {
     
     allowedFields.forEach(field => {
       if (req.body.hasOwnProperty(field)) {
-        // Support pour les champs imbriqués (ex: address.street)
+       
         if (field.includes('.')) {
           const keys = field.split('.');
           let current = req.body;
@@ -88,13 +88,13 @@ export const logValidation = (req, res, next) => {
   const errors = validationResult(req);
   
   if (process.env.NODE_ENV === 'development') {
-    console.log(`🔍 Validation pour ${req.method} ${req.path}:`);
+    console.log(` Validation pour ${req.method} ${req.path}:`);
     console.log(`   Body:`, JSON.stringify(req.body, null, 2));
     
     if (!errors.isEmpty()) {
-      console.log(`   ❌ Erreurs:`, errors.array());
+      console.log(`    Erreurs:`, errors.array());
     } else {
-      console.log(`   ✅ Validation réussie`);
+      console.log(`    Validation réussie`);
     }
   }
   
@@ -107,7 +107,7 @@ export const logValidation = (req, res, next) => {
 export const validateFileUpload = (allowedTypes = [], maxSize = 5 * 1024 * 1024) => {
   return (req, res, next) => {
     if (!req.files || Object.keys(req.files).length === 0) {
-      return next(); // Pas de fichier, continuer
+      return next(); 
     }
 
     const errors = [];

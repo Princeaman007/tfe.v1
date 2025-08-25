@@ -1,7 +1,7 @@
 import Book from "../models/bookModel.js";
 import Rental from "../models/rentalModel.js";
 
-// ✅ Ajouter un livre (PROTÉGÉ - Admin uniquement)
+//  Ajouter un livre (PROTÉGÉ - Admin uniquement)
 export const addBook = async (req, res) => {
   try {
     const { title, author, description, genre, publishedYear, coverImage, availableCopies, price } = req.body;
@@ -19,7 +19,7 @@ export const addBook = async (req, res) => {
       publishedYear,
       coverImage,
       availableCopies,
-      price, // 🔹 Ajout du prix
+      price, 
     });
 
     const savedBook = await newBook.save();
@@ -29,7 +29,7 @@ export const addBook = async (req, res) => {
   }
 };
 
-// ✅ Modifier un livre (PROTÉGÉ - Admin uniquement)
+// Modifier un livre (PROTÉGÉ - Admin uniquement)
 export const updateBook = async (req, res) => {
   try {
     const { id } = req.params;
@@ -47,7 +47,7 @@ export const updateBook = async (req, res) => {
     book.publishedYear = publishedYear || book.publishedYear;
     book.coverImage = coverImage || book.coverImage;
     book.availableCopies = availableCopies !== undefined ? availableCopies : book.availableCopies;
-    book.price = price !== undefined ? price : book.price; // 🔹 Mise à jour du prix
+    book.price = price !== undefined ? price : book.price; 
 
     await book.save();
     res.status(200).json({ message: "Livre mis à jour avec succès", book });
@@ -56,36 +56,36 @@ export const updateBook = async (req, res) => {
   }
 };
 
-// ✅ Supprimer un livre (PROTÉGÉ - Admin uniquement)
+//Supprimer un livre (PROTÉGÉ - Admin uniquement)
 export const deleteBook = async (req, res) => {
   try {
-    console.log("🗑️ === DÉBUT SUPPRESSION ===");
-    console.log("📝 Params reçus:", req.params);
-    console.log("📝 User:", req.user ? `${req.user.name} (${req.user.role})` : "AUCUN USER");
+    console.log(" === DÉBUT SUPPRESSION ===");
+    console.log(" Params reçus:", req.params);
+    console.log(" User:", req.user ? `${req.user.name} (${req.user.role})` : "AUCUN USER");
     
     const { id } = req.params;
-    console.log("📝 ID à supprimer:", id);
+    console.log(" ID à supprimer:", id);
 
     // Vérifier que l'ID est valide
     if (!id) {
-      console.log("❌ ID manquant");
+      console.log(" ID manquant");
       return res.status(400).json({ message: "ID du livre manquant" });
     }
 
-    console.log("🔍 Recherche du livre...");
+    console.log(" Recherche du livre...");
     const book = await Book.findById(id);
-    console.log("📖 Livre trouvé:", book ? `"${book.title}" par ${book.author}` : "AUCUN");
+    console.log(" Livre trouvé:", book ? `"${book.title}" par ${book.author}` : "AUCUN");
 
     if (!book) {
-      console.log("❌ Livre non trouvé");
+      console.log(" Livre non trouvé");
       return res.status(404).json({ message: "Livre non trouvé" });
     }
 
-    console.log("🗑️ Suppression en cours...");
+    console.log(" Suppression en cours...");
     const result = await book.deleteOne();
-    console.log("✅ Résultat suppression:", result);
+    console.log(" Résultat suppression:", result);
 
-    console.log("🎉 Suppression réussie !");
+    console.log(" Suppression réussie !");
     res.status(200).json({ 
       success: true,
       message: "Livre supprimé avec succès",
@@ -95,11 +95,11 @@ export const deleteBook = async (req, res) => {
       }
     });
 
-    console.log("🗑️ === FIN SUPPRESSION (SUCCÈS) ===");
+    console.log(" === FIN SUPPRESSION (SUCCÈS) ===");
 
   } catch (error) {
-    console.log("🗑️ === FIN SUPPRESSION (ERREUR) ===");
-    console.error("❌ Erreur complète:", {
+    console.log(" === FIN SUPPRESSION (ERREUR) ===");
+    console.error(" Erreur complète:", {
       message: error.message,
       name: error.name,
       stack: error.stack
@@ -107,7 +107,7 @@ export const deleteBook = async (req, res) => {
 
     // Gestion spécifique des erreurs
     if (error.name === 'CastError') {
-      console.log("❌ CastError - ID MongoDB invalide");
+      console.log("CastError - ID MongoDB invalide");
       return res.status(400).json({ 
         success: false,
         message: "Format d'ID invalide" 
@@ -137,7 +137,7 @@ export const getAllBooks = async (req, res) => {
 
     let query = {};
 
-    // 🔍 Recherche avancée (titre, auteur, description)
+    //Recherche avancée (titre, auteur, description)
     if (search.trim() !== "") {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
@@ -146,12 +146,12 @@ export const getAllBooks = async (req, res) => {
       ];
     }
 
-    // 📂 Filtrage par genre avec recherche partielle
+    // Filtrage par genre avec recherche partielle
     if (genre.trim() !== "") {
       query.genre = { $regex: genre, $options: "i" };
     }
 
-    // 💰 Tri par prix
+    //Tri par prix
     let sortOption = {};
     if (sortByPrice === "asc") {
       sortOption.price = 1;
@@ -159,7 +159,7 @@ export const getAllBooks = async (req, res) => {
       sortOption.price = -1;
     }
 
-    // 📄 Récupération des livres avec pagination et tri
+    //Récupération des livres avec pagination et tri
     const books = await Book.find(query)
       .sort(sortOption)
       .skip((currentPage - 1) * perPage)
@@ -171,17 +171,17 @@ export const getAllBooks = async (req, res) => {
       books,
       total: totalBooks,
       page: currentPage,
-      totalPages: Math.ceil(totalBooks / perPage), // ✅ Correction ici
+      totalPages: Math.ceil(totalBooks / perPage), 
     });
   } catch (error) {
-    console.error("❌ Erreur getAllBooks:", error);
+    console.error("Erreur getAllBooks:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
 
 
-// ✅ Récupérer un livre par ID (Accessible à tous)
+// Récupérer un livre par ID 
 export const getBookById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -197,7 +197,7 @@ export const getBookById = async (req, res) => {
   }
 };
 
-// ✅ Récupérer tous les livres avec uniquement leur stock disponible
+//Récupérer tous les livres avec uniquement leur stock disponible
 export const getBooksStock = async (req, res) => {
   try {
     const books = await Book.find().select("title availableCopies");
@@ -240,7 +240,7 @@ export const getBookStats = async (req, res) => {
       returnedBooks: returnedCount,
     });
   } catch (error) {
-    console.error("❌ Erreur dans getBookStats:", error);
+    console.error(" Erreur dans getBookStats:", error);
     res.status(500).json({ message: "Erreur lors des statistiques", error: error.message });
   }
 };
@@ -251,7 +251,7 @@ export const getGenres = async (req, res) => {
     const genres = await Book.distinct("genre");
     res.status(200).json({ genres });
   } catch (error) {
-    console.error("❌ Erreur lors de la récupération des genres :", error);
+    console.error(" Erreur lors de la récupération des genres :", error);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };
@@ -260,8 +260,8 @@ export const getGenres = async (req, res) => {
 
 export const toggleLikeBook = async (req, res) => {
   try {
-    const { id } = req.params; // ID du livre
-    const userId = req.user._id; // ID de l'utilisateur connecté
+    const { id } = req.params; 
+    const userId = req.user._id; 
 
     const book = await Book.findById(id);
     if (!book) {

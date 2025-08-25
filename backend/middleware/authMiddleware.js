@@ -5,7 +5,7 @@ import User from "../models/userModel.js";
 dotenv.config();
 
 /**
- * 🔒 Middleware : Authentification requise
+ *  Middleware : Authentification requise
  */
 export const protect = async (req, res, next) => {
   try {
@@ -17,40 +17,40 @@ export const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({ message: "❌ Non autorisé : token manquant." });
+      return res.status(401).json({ message: " Non autorisé : token manquant." });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
-      return res.status(401).json({ message: "❌ Utilisateur introuvable." });
+      return res.status(401).json({ message: " Utilisateur introuvable." });
     }
 
     req.user = user;
     next();
   } catch (error) {
-    console.error("🔴 Erreur de token :", error.message);
+    console.error(" Erreur de token :", error.message);
     res.clearCookie("token", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
-    res.status(401).json({ message: "❌ Token invalide ou expiré." });
+    res.status(401).json({ message: " Token invalide ou expiré." });
   }
 };
 
 /**
- * 📩 Vérifie si l'utilisateur a validé son email
+ *  Vérifie si l'utilisateur a validé son email
  */
 export const isVerified = (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({ message: "❌ Non autorisé." });
+    return res.status(401).json({ message: " Non autorisé." });
   }
 
   if (!req.user.isVerified) {
     return res.status(403).json({
-      message: "📩 Merci de vérifier votre e-mail pour accéder à cette ressource.",
+      message: " Merci de vérifier votre e-mail pour accéder à cette ressource.",
     });
   }
 
@@ -58,16 +58,16 @@ export const isVerified = (req, res, next) => {
 };
 
 /**
- * 🔐 Vérifie si l'utilisateur est admin OU superAdmin
+ *  Vérifie si l'utilisateur est admin OU superAdmin
  */
 export const isAdmin = (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({ message: "❌ Non autorisé." });
+    return res.status(401).json({ message: " Non autorisé." });
   }
 
   if (req.user.role !== "admin" && req.user.role !== "superAdmin") {
     return res.status(403).json({
-      message: "🔒 Accès refusé : rôle administrateur requis.",
+      message: " Accès refusé : rôle administrateur requis.",
     });
   }
 
@@ -75,11 +75,11 @@ export const isAdmin = (req, res, next) => {
 };
 
 /**
- * 🔥 Vérifie si l'utilisateur est superAdmin uniquement
+ *  Vérifie si l'utilisateur est superAdmin uniquement
  */
 export const isSuperAdmin = (req, res, next) => {
   if (req.user?.role !== "superAdmin") {
-    return res.status(403).json({ message: "⛔️ Accès réservé au super administrateur." });
+    return res.status(403).json({ message: " Accès réservé au super administrateur." });
   }
 
   next();

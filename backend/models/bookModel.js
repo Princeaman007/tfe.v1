@@ -11,7 +11,7 @@ const bookSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     availableCopies: { type: Number, required: true, default: 1 },
 
-    // Statistiques ajoutées
+    
     borrowedCount: { type: Number, default: 0 }, 
     returnedCount: { type: Number, default: 0 }, 
 

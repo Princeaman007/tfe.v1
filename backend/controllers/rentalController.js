@@ -1,25 +1,24 @@
-// backend/controllers/rentalController.js - Complet
+
 import Rental from "../models/rentalModel.js";
 import Book from "../models/bookModel.js";
 import User from "../models/userModel.js";
 import nodemailer from "nodemailer";
 
-// ✅ Emprunter un livre (avec dueDate de 30 jours)
-// ✅ Emprunter un livre (VERSION DEBUG COMPLÈTE)
+
 export const borrowBook = async (req, res) => {
   try {
-    console.log("📚 === DÉBUT EMPRUNT LIVRE ===");
-    console.log("📝 req.body:", req.body);
-    console.log("📝 req.user:", req.user ? { id: req.user._id, name: req.user.name } : "PAS D'USER");
+    console.log(" === DÉBUT EMPRUNT LIVRE ===");
+    console.log(" req.body:", req.body);
+    console.log(" req.user:", req.user ? { id: req.user._id, name: req.user.name } : "PAS D'USER");
     
     const { bookId } = req.body;
     const userId = req.user._id;
 
-    console.log("🔍 Recherche du livre avec ID:", bookId);
+    console.log(" Recherche du livre avec ID:", bookId);
 
     // 1. Vérifier que le livre existe
     const book = await Book.findById(bookId);
-    console.log("📖 Livre trouvé:", book ? {
+    console.log(" Livre trouvé:", book ? {
       id: book._id,
       title: book.title,
       availableCopies: book.availableCopies,
@@ -27,26 +26,26 @@ export const borrowBook = async (req, res) => {
     } : "AUCUN LIVRE TROUVÉ");
 
     if (!book) {
-      console.log("❌ Livre non trouvé avec ID:", bookId);
+      console.log(" Livre non trouvé avec ID:", bookId);
       return res.status(404).json({ message: "Livre non trouvé." });
     }
 
     // 2. Vérifier la disponibilité
-    console.log("📊 Stock actuel:", book.availableCopies);
+    console.log(" Stock actuel:", book.availableCopies);
     if (book.availableCopies <= 0) {
-      console.log("❌ Stock épuisé");
+      console.log(" Stock épuisé");
       return res.status(400).json({ message: "Ce livre n'est plus disponible." });
     }
 
     // 3. Vérifier si l'utilisateur a déjà emprunté ce livre
-    console.log("🔍 Vérification location existante...");
+    console.log(" Vérification location existante...");
     const existingRental = await Rental.findOne({ 
       user: userId, 
       book: bookId, 
       status: "borrowed" 
     });
     
-    console.log("📋 Location existante:", existingRental ? "TROUVÉE" : "AUCUNE");
+    console.log(" Location existante:", existingRental ? "TROUVÉE" : "AUCUNE");
     
     if (existingRental) {
       console.log("❌ Livre déjà emprunté par cet utilisateur");
@@ -54,7 +53,7 @@ export const borrowBook = async (req, res) => {
     }
 
     // 4. Créer la location
-    console.log("📝 Création de la location...");
+    console.log(" Création de la location...");
     const borrowedAt = new Date();
     const dueDate = new Date();
     dueDate.setDate(borrowedAt.getDate() + 30);
@@ -67,16 +66,16 @@ export const borrowBook = async (req, res) => {
       status: "borrowed" 
     });
 
-    console.log("✅ Location créée avec succès:", {
+    console.log(" Location créée avec succès:", {
       id: rental._id,
       user: rental.user,
       book: rental.book,
       status: rental.status
     });
 
-    // 5. ✅ MISE À JOUR DU STOCK (PARTIE CRITIQUE)
-    console.log("📊 === DÉBUT MISE À JOUR STOCK ===");
-    console.log("📊 Avant modification:", {
+    // 5.  MISE À JOUR DU STOCK (PARTIE CRITIQUE)
+    console.log(" === DÉBUT MISE À JOUR STOCK ===");
+    console.log(" Avant modification:", {
       availableCopies: book.availableCopies,
       borrowedCount: book.borrowedCount
     });
@@ -85,16 +84,16 @@ export const borrowBook = async (req, res) => {
     book.availableCopies = book.availableCopies - 1;
     book.borrowedCount = (book.borrowedCount || 0) + 1;
 
-    console.log("📊 Après modification (avant save):", {
+    console.log(" Après modification (avant save):", {
       availableCopies: book.availableCopies,
       borrowedCount: book.borrowedCount
     });
 
     // Sauvegarder le livre
-    console.log("💾 Sauvegarde du livre...");
+    console.log(" Sauvegarde du livre...");
     const savedBook = await book.save();
     
-    console.log("✅ Livre sauvegardé:", {
+    console.log(" Livre sauvegardé:", {
       id: savedBook._id,
       title: savedBook.title,
       availableCopies: savedBook.availableCopies,
@@ -102,14 +101,14 @@ export const borrowBook = async (req, res) => {
     });
 
     // 6. Vérification post-sauvegarde
-    console.log("🔍 Vérification en base de données...");
+    console.log(" Vérification en base de données...");
     const bookFromDB = await Book.findById(bookId);
-    console.log("📊 Livre depuis la DB:", {
+    console.log(" Livre depuis la DB:", {
       availableCopies: bookFromDB.availableCopies,
       borrowedCount: bookFromDB.borrowedCount
     });
 
-    console.log("📊 === FIN MISE À JOUR STOCK ===");
+    console.log(" === FIN MISE À JOUR STOCK ===");
 
     // 7. Réponse
     res.status(201).json({ 
@@ -123,14 +122,14 @@ export const borrowBook = async (req, res) => {
       }
     });
 
-    console.log("🎉 Emprunt réussi !");
-    console.log("📚 === FIN EMPRUNT LIVRE (SUCCÈS) ===");
+    console.log(" Emprunt réussi !");
+    console.log(" === FIN EMPRUNT LIVRE (SUCCÈS) ===");
 
   } catch (error) {
-    console.error("❌ === ERREUR COMPLÈTE ===");
-    console.error("❌ Message:", error.message);
-    console.error("❌ Stack:", error.stack);
-    console.error("❌ Name:", error.name);
+    console.error(" === ERREUR COMPLÈTE ===");
+    console.error(" Message:", error.message);
+    console.error(" Stack:", error.stack);
+    console.error(" Name:", error.name);
     
     res.status(500).json({ 
       message: "Erreur serveur", 
@@ -141,64 +140,52 @@ export const borrowBook = async (req, res) => {
 };
 
 
-// ✅ Retourner un livre (ancienne méthode)
+// ✅ Retourner un livre 
 export const returnBook = async (req, res) => {
   try {
-    console.log("📚 === DÉBUT RETOUR LIVRE ===");
+    console.log(" === DÉBUT RETOUR LIVRE ===");
     
     const { rentalId } = req.body;
     const userId = req.user._id;
 
-    console.log("📝 Données retour:", { rentalId, userId });
+    console.log(" Données retour:", { rentalId, userId });
 
     const rental = await Rental.findById(rentalId).populate("book");
     if (!rental) {
-      console.log("❌ Location non trouvée:", rentalId);
+      console.log(" Location non trouvée:", rentalId);
       return res.status(404).json({ message: "Location non trouvée." });
     }
 
     if (rental.user.toString() !== userId.toString()) {
-      console.log("❌ Utilisateur non autorisé");
+      console.log(" Utilisateur non autorisé");
       return res.status(403).json({ message: "Non autorisé à retourner ce livre." });
     }
 
     if (rental.status === "returned") {
-      console.log("❌ Livre déjà retourné");
+      console.log(" Livre déjà retourné");
       return res.status(400).json({ message: "Ce livre a déjà été retourné." });
     }
 
-    console.log("📖 Retour du livre:", rental.book.title);
+    console.log(" Retour du livre:", rental.book.title);
 
     // 1. Mettre à jour la location
     rental.status = "returned";
     rental.returnedAt = new Date();
     await rental.save();
 
-    console.log("✅ Location mise à jour");
+    console.log(" Location mise à jour");
 
-    // 2. ✅ REMETTRE LE LIVRE EN STOCK ET INCRÉMENTER returnedCount
+    // 2. REMETTRE LE LIVRE EN STOCK ET INCRÉMENTER returnedCount
     const book = await Book.findById(rental.book._id);
     if (book) {
-      // Méthode 1: Avec save() (votre méthode actuelle améliorée)
+      
       book.availableCopies += 1;
-      book.returnedCount = (book.returnedCount || 0) + 1;  // ✅ AJOUT IMPORTANT
+      book.returnedCount = (book.returnedCount || 0) + 1;  
       await book.save();
 
-      /* 
-      // Méthode 2: Avec findByIdAndUpdate (plus atomique)
-      const updatedBook = await Book.findByIdAndUpdate(
-        rental.book._id,
-        {
-          $inc: {
-            availableCopies: 1,
-            returnedCount: 1
-          }
-        },
-        { new: true }
-      );
-      */
+    
 
-      console.log("📊 Stock restauré:", {
+      console.log(" Stock restauré:", {
         title: book.title,
         availableCopies: book.availableCopies,
         returnedCount: book.returnedCount,
@@ -216,16 +203,16 @@ export const returnBook = async (req, res) => {
       }
     });
 
-    console.log("🎉 Retour réussi !");
-    console.log("📚 === FIN RETOUR LIVRE (SUCCÈS) ===");
+    console.log(" Retour réussi !");
+    console.log(" === FIN RETOUR LIVRE (SUCCÈS) ===");
 
   } catch (error) {
-    console.error("❌ returnBook:", error);
+    console.error(" returnBook:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// ✅ Récupérer les locations de l'utilisateur (version simple)
+//  Récupérer les locations de l'utilisateur 
 export const getUserRentals = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -239,7 +226,7 @@ export const getUserRentals = async (req, res) => {
 
     res.status(200).json(rentals);
   } catch (error) {
-    console.error("❌ getUserRentals:", error);
+    console.error("getUserRentals:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
@@ -265,15 +252,15 @@ export const getAllRentals = async (req, res) => {
       total
     });
   } catch (error) {
-    console.error("❌ getAllRentals:", error);
+    console.error(" getAllRentals:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// ✅ Récupérer les locations mensuelles (pour le graphique analytics)
+//  Récupérer les locations mensuelles (pour le graphique analytics)
 export const getMonthlyRentals = async (req, res) => {
   try {
-    const rentals = await Rental.find({}, "borrowedAt"); // Récupère uniquement les dates
+    const rentals = await Rental.find({}, "borrowedAt"); 
 
     const monthlyCounts = {};
     rentals.forEach(r => {
@@ -295,14 +282,14 @@ export const getMonthlyRentals = async (req, res) => {
 
     res.status(200).json(result);
   } catch (error) {
-    console.error("❌ Erreur getMonthlyRentals:", error);
+    console.error("Erreur getMonthlyRentals:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
 
 
-// ✅ Récupérer les locations d'un utilisateur spécifique (Admin)
+//  Récupérer les locations d'un utilisateur spécifique (Admin)
 export const getUserRentalsByAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -316,16 +303,16 @@ export const getUserRentalsByAdmin = async (req, res) => {
 
     res.status(200).json(rentals);
   } catch (error) {
-    console.error("❌ getUserRentalsByAdmin:", error);
+    console.error(" getUserRentalsByAdmin:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// ✅ Récupérer les locations de l'utilisateur connecté avec détails
+//  Récupérer les locations de l'utilisateur connecté avec détails
 export const getUserRentalsDetailed = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { status } = req.query; // Filtrer par statut (borrowed, returned, overdue)
+    const { status } = req.query; 
 
     let query = { user: userId };
     if (status) {
@@ -381,7 +368,7 @@ export const getUserRentalsDetailed = async (req, res) => {
   }
 };
 
-// ✅ Retourner un livre avec calcul automatique des amendes
+//  Retourner un livre avec calcul automatique des amendes
 export const returnBookImproved = async (req, res) => {
   try {
     const { rentalId } = req.body;
@@ -408,7 +395,7 @@ export const returnBookImproved = async (req, res) => {
     // Calcul des amendes si en retard
     if (now > dueDate) {
       const daysLate = Math.ceil((now - dueDate) / (1000 * 60 * 60 * 24));
-      fineAmount = daysLate * 1.5; // 1.5€ par jour de retard
+      fineAmount = daysLate * 1.5; 
       rental.fineAmount = fineAmount;
       rental.overdue = true;
       message += ` Vous avez ${daysLate} jour(s) de retard. Amende : ${fineAmount}€`;
@@ -432,12 +419,12 @@ export const returnBookImproved = async (req, res) => {
       bookReturned: true
     });
   } catch (error) {
-    console.error("❌ returnBookImproved:", error);
+    console.error(" returnBookImproved:", error);
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// ✅ Fonction pour vérifier les locations en retard (tâche planifiée)
+//  Fonction pour vérifier les locations en retard (tâche planifiée)
 export const checkOverdueRentals = async () => {
   try {
     const now = new Date();
@@ -449,7 +436,7 @@ export const checkOverdueRentals = async () => {
       overdue: { $ne: true }
     }).populate('book user');
 
-    console.log(`🔍 Vérification des retards: ${overdueRentals.length} locations trouvées`);
+    console.log(` Vérification des retards: ${overdueRentals.length} locations trouvées`);
 
     // Marquer comme en retard et calculer les amendes
     for (const rental of overdueRentals) {
@@ -460,7 +447,7 @@ export const checkOverdueRentals = async () => {
       rental.fineAmount = fineAmount;
       await rental.save();
 
-      console.log(`📚 ${rental.book.title} - Retard: ${daysLate} jours, Amende: ${fineAmount}€`);
+      console.log(` ${rental.book.title} - Retard: ${daysLate} jours, Amende: ${fineAmount}€`);
     }
 
     return {
@@ -468,12 +455,12 @@ export const checkOverdueRentals = async () => {
       totalFines: overdueRentals.reduce((sum, rental) => sum + rental.fineAmount, 0)
     };
   } catch (error) {
-    console.error("❌ checkOverdueRentals:", error);
+    console.error(" checkOverdueRentals:", error);
     throw error;
   }
 };
 
-// ✅ Envoyer des notifications d'amendes par email
+//  Envoyer des notifications d'amendes par email
 export const sendFineNotification = async () => {
   try {
     // Trouver les locations avec des amendes impayées
@@ -484,7 +471,7 @@ export const sendFineNotification = async () => {
     }).populate('user book');
 
     if (unpaidFines.length === 0) {
-      console.log("✅ Aucune amende impayée trouvée.");
+      console.log("Aucune amende impayée trouvée.");
       return;
     }
 
@@ -516,15 +503,15 @@ export const sendFineNotification = async () => {
 
       try {
         await transporter.sendMail(mailOptions);
-        console.log(`📧 Email envoyé à ${rental.user.email} pour l'amende de ${rental.fineAmount}€`);
+        console.log(` Email envoyé à ${rental.user.email} pour l'amende de ${rental.fineAmount}€`);
       } catch (emailError) {
-        console.error(`❌ Erreur envoi email à ${rental.user.email}:`, emailError);
+        console.error(` Erreur envoi email à ${rental.user.email}:`, emailError);
       }
     }
 
-    console.log(`✅ Traitement terminé: ${unpaidFines.length} notifications envoyées`);
+    console.log(` Traitement terminé: ${unpaidFines.length} notifications envoyées`);
   } catch (error) {
-    console.error("❌ sendFineNotification:", error);
+    console.error(" sendFineNotification:", error);
     throw error;
   }
 };
