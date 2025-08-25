@@ -232,6 +232,6 @@ R: Configurez un mot de passe d'application Gmail et vérifiez les spams
 
 ---
 
-**Développé avec par Aman Prince**
+**Développé  par Aman Prince**
 
 ⭐ **N'hésitez pas à donner une étoile si ce projet vous aide !**
